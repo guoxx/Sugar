@@ -101,6 +101,18 @@ void FeatureDemo::setSceneSampler(uint32_t maxAniso)
     pScene->bindSamplerToModels(mpSceneSampler);
 }
 
+Camera* FeatureDemo::getActiveCamera() const
+{
+    if (mCameraLiveViewMode)
+    {
+        return mpSceneRenderer->getScene()->getActiveCamera().get();
+    }
+    else
+    {
+        return mpEditor->getEditorCamera().get();
+    }
+}
+
 void FeatureDemo::applyCustomSceneVars(const Scene* pScene, const std::string& filename)
 {
     std::string folder = getDirectoryFromFile(filename);
@@ -149,6 +161,8 @@ void FeatureDemo::initScene(Scene::SharedPtr pScene)
         pScene->setAmbientIntensity(vec3(0.1f));
     }
 
+    mpEditor = SugarSceneEditor::create(pScene);
+
     mpSceneRenderer = FeatureDemoSceneRenderer::create(pScene);
     mpSceneRenderer->setCameraControllerType(SceneRenderer::CameraControllerType::FirstPerson);
     mpSceneRenderer->toggleStaticMaterialCompilation(mPerMaterialShader);
@@ -167,6 +181,7 @@ void FeatureDemo::resetScene()
     mpSceneRenderer = nullptr;
     mSkyBox.pEffect = nullptr;
     mpEnvMap = nullptr;
+    mpEditor = nullptr;
 }
 
 void FeatureDemo::loadModel(const std::string& filename, bool showProgressBar)
@@ -254,7 +269,7 @@ void FeatureDemo::renderSkyBox()
     {
         PROFILE(skyBox);
         mpState->setDepthStencilState(mSkyBox.pDS);
-        mSkyBox.pEffect->render(mpRenderContext.get(), mpSceneRenderer->getScene()->getActiveCamera().get());
+        mSkyBox.pEffect->render(mpRenderContext.get(), getActiveCamera());
         mpState->setDepthStencilState(nullptr);
     }
 }
@@ -275,7 +290,7 @@ void FeatureDemo::beginFrame()
         const auto& samplePattern = (mTAASamplePattern == SamplePattern::Halton) ? kHaltonSamplePattern : kDX11SamplePattern;
         static_assert(arraysize(kHaltonSamplePattern) == arraysize(kDX11SamplePattern), "Mismatch in the array size of the sample patterns");
         uint32_t patternIndex = getFrameID() % arraysize(kHaltonSamplePattern);
-        mpSceneRenderer->getScene()->getActiveCamera()->setJitter(samplePattern[patternIndex][0] / targetResolution.x, samplePattern[patternIndex][1] / targetResolution.y);
+        getActiveCamera()->setJitter(samplePattern[patternIndex][0] / targetResolution.x, samplePattern[patternIndex][1] / targetResolution.y);
     }
 }
 
@@ -304,7 +319,7 @@ void FeatureDemo::depthPass()
     
     auto renderMode = mControls[EnableTransparency].enabled ? FeatureDemoSceneRenderer::Mode::Opaque : FeatureDemoSceneRenderer::Mode::All;
     mpSceneRenderer->setRenderMode(renderMode);
-    mpSceneRenderer->renderScene(mpRenderContext.get());
+    mpSceneRenderer->renderScene(mpRenderContext.get(), getActiveCamera());
 }
 
 void FeatureDemo::lightingPass()
@@ -343,16 +358,24 @@ void FeatureDemo::lightingPass()
     else
     {
         mpSceneRenderer->setRenderMode(FeatureDemoSceneRenderer::Mode::All);
-        mpSceneRenderer->renderScene(mpRenderContext.get());
+        mpSceneRenderer->renderScene(mpRenderContext.get(), getActiveCamera());
     }
     mpRenderContext->flush();
     mpState->setDepthStencilState(nullptr);
 }
 
+void FeatureDemo::renderEditor()
+{
+    if (mpEditor && !mCameraLiveViewMode && !mCompareWithMitsuba)
+    {
+        mpEditor->render(mpRenderContext.get());
+    }
+}
+
 void FeatureDemo::renderOpaqueObjects()
 {
     mpSceneRenderer->setRenderMode(FeatureDemoSceneRenderer::Mode::Opaque);
-    mpSceneRenderer->renderScene(mpRenderContext.get());
+    mpSceneRenderer->renderScene(mpRenderContext.get(), getActiveCamera());
 }
 
 void FeatureDemo::renderTransparentObjects()
@@ -360,7 +383,7 @@ void FeatureDemo::renderTransparentObjects()
     mpSceneRenderer->setRenderMode(FeatureDemoSceneRenderer::Mode::Transparent);
     mpState->setBlendState(mLightingPass.pAlphaBlendBS);
     mpState->setRasterizerState(mLightingPass.pNoCullRS);
-    mpSceneRenderer->renderScene(mpRenderContext.get());
+    mpSceneRenderer->renderScene(mpRenderContext.get(), getActiveCamera());
     mpState->setBlendState(nullptr);
     mpState->setRasterizerState(nullptr);
 }
@@ -377,8 +400,8 @@ void FeatureDemo::shadowPass()
     PROFILE(shadowPass);
     if (mControls[EnableShadows].enabled && mShadowPass.updateShadowMap)
     {
-        mShadowPass.camVpAtLastCsmUpdate = mpSceneRenderer->getScene()->getActiveCamera()->getViewProjMatrix();
-        mShadowPass.pCsm->setup(mpRenderContext.get(), mpSceneRenderer->getScene()->getActiveCamera().get(), mEnableDepthPass ? mpDepthPassFbo->getDepthStencilTexture() : nullptr);
+        mShadowPass.camVpAtLastCsmUpdate = getActiveCamera()->getViewProjMatrix();
+        mShadowPass.pCsm->setup(mpRenderContext.get(), getActiveCamera(), mEnableDepthPass ? mpDepthPassFbo->getDepthStencilTexture() : nullptr);
         mpRenderContext->flush();
     }
 }
@@ -427,7 +450,7 @@ void FeatureDemo::ambientOcclusion()
     PROFILE(ssao);
     if (mControls[EnableSSAO].enabled)
     {
-        Texture::SharedPtr pAOMap = mSSAO.pSSAO->generateAOMap(mpRenderContext.get(), mpSceneRenderer->getScene()->getActiveCamera().get(), mpResolveFbo->getColorTexture(2), mpResolveFbo->getColorTexture(1));
+        Texture::SharedPtr pAOMap = mSSAO.pSSAO->generateAOMap(mpRenderContext.get(), getActiveCamera(), mpResolveFbo->getColorTexture(2), mpResolveFbo->getColorTexture(1));
         mSSAO.pVars->setTexture("gColor", mpPostProcessFbo->getColorTexture(0));
         mSSAO.pVars->setTexture("gAOMap", pAOMap);
 
@@ -435,6 +458,16 @@ void FeatureDemo::ambientOcclusion()
         mpRenderContext->setGraphicsVars(mSSAO.pVars);
 
         mSSAO.pApplySSAOPass->execute(mpRenderContext.get());
+    }
+}
+
+void FeatureDemo::renderingComparisonWithMitsuba()
+{
+    if (mCompareWithMitsuba)
+    {
+        mCompareWithMitsuba = false;
+        mpEditor->compareSceneWithMitsuba(mpResolveFbo->getColorTexture(0).get());
+        //mpEditor->compareSceneWithMitsuba(gpDevice->getSwapChainFbo()->getColorTexture(0).get());
     }
 }
 
@@ -459,6 +492,7 @@ void FeatureDemo::onFrameRender()
 
         {
             PROFILE(updateScene);
+            mpEditor->update(mCurrentTime);
             mpSceneRenderer->update(mCurrentTime);
         }
 
@@ -467,9 +501,12 @@ void FeatureDemo::onFrameRender()
         mpState->setFbo(mpMainFbo);
         renderSkyBox();
         lightingPass();
+        renderEditor();
         antiAliasing();
+        renderingComparisonWithMitsuba();
         postProcess();
         ambientOcclusion();
+
         endFrame();
     }
     else
@@ -499,6 +536,11 @@ void FeatureDemo::applyCameraPathState()
 
 bool FeatureDemo::onKeyEvent(const KeyboardEvent& keyEvent)
 {
+    if (!mCameraLiveViewMode && mpEditor != nullptr)
+    {
+        return mpEditor->onKeyEvent(keyEvent);
+    }
+
     if (mpSceneRenderer && keyEvent.type == KeyboardEvent::Type::KeyPressed)
     {
         switch (keyEvent.key)
@@ -519,6 +561,11 @@ bool FeatureDemo::onKeyEvent(const KeyboardEvent& keyEvent)
 
 bool FeatureDemo::onMouseEvent(const MouseEvent& mouseEvent)
 {
+    if (!mCameraLiveViewMode && mpEditor != nullptr)
+    {
+        return mpEditor->onMouseEvent(mpRenderContext.get(), mouseEvent);
+    }
+
     return mpSceneRenderer ? mpSceneRenderer->onMouseEvent(mouseEvent) : true;
 }
 
@@ -540,13 +587,18 @@ void FeatureDemo::onResizeSwapChain()
     {
         setActiveCameraAspectRatio();
     }
+
+    if (mpEditor)
+    {
+        mpEditor->onResizeSwapChain();
+    }
 }
 
 void FeatureDemo::setActiveCameraAspectRatio()
 {
     uint32_t w = mpDefaultFBO->getWidth();
     uint32_t h = mpDefaultFBO->getHeight();
-    mpSceneRenderer->getScene()->getActiveCamera()->setAspectRatio((float)w / (float)h);
+    getActiveCamera()->setAspectRatio((float)w / (float)h);
 }
 
 void FeatureDemo::onInitializeTesting()
@@ -566,13 +618,13 @@ void FeatureDemo::onInitializeTesting()
     std::vector<ArgList::Arg> cameraPos = mArgList.getValues("camerapos");
     if (!cameraPos.empty())
     {
-        mpSceneRenderer->getScene()->getActiveCamera()->setPosition(glm::vec3(cameraPos[0].asFloat(), cameraPos[1].asFloat(), cameraPos[2].asFloat()));
+        getActiveCamera()->setPosition(glm::vec3(cameraPos[0].asFloat(), cameraPos[1].asFloat(), cameraPos[2].asFloat()));
     }
 
     std::vector<ArgList::Arg> cameraTarget = mArgList.getValues("cameratarget");
     if (!cameraTarget.empty())
     {
-        mpSceneRenderer->getScene()->getActiveCamera()->setTarget(glm::vec3(cameraTarget[0].asFloat(), cameraTarget[1].asFloat(), cameraTarget[2].asFloat()));
+        getActiveCamera()->setTarget(glm::vec3(cameraTarget[0].asFloat(), cameraTarget[1].asFloat(), cameraTarget[2].asFloat()));
     }
 }
 

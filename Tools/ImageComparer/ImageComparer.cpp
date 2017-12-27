@@ -27,6 +27,8 @@
 ***************************************************************************/
 #include "ImageComparer.h"
 
+static const char* kImageFileString = "Image files\0*.jpg;*.bmp;*.dds;*.png;*.tiff;*.tif;*.tga;*.hdr;*.exr\0\0";
+
 void ImageComparer::onGuiRender()
 {
     mpGui->addSeparator();
@@ -49,14 +51,14 @@ void ImageComparer::onGuiRender()
     }
     if (mpGui->addButton("Load Image Left"))
     {
-        if (openFileDialog(nullptr, mLeftFilename))
+        if (openFileDialog(kImageFileString, mLeftFilename))
         {
             loadImage(true, mLeftFilename);
         }
     }
     if (mpGui->addButton("Load Image Right", true))
     {
-        if (openFileDialog(nullptr, mRightFilename))
+        if (openFileDialog(kImageFileString, mRightFilename))
         {
             loadImage(false, mRightFilename);
         }

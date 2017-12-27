@@ -4,14 +4,33 @@
     <ClCompile Include="FeatureDemo.cpp" />
     <ClCompile Include="FeatureDemoControls.cpp" />
     <ClCompile Include="FeatureDemoSceneRenderer.cpp" />
+    <ClCompile Include="..\Externals\pugixml-1.8\src\pugixml.cpp">
+      <Filter>Externals\pugixml</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneMitsubaExporter.cpp" />
+    <ClCompile Include="SugarSceneEditor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FeatureDemo.h" />
     <ClInclude Include="FeatureDemoSceneRenderer.h" />
+    <ClInclude Include="..\Externals\pugixml-1.8\src\pugiconfig.hpp">
+      <Filter>Externals\pugixml</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Externals\pugixml-1.8\src\pugixml.hpp">
+      <Filter>Externals\pugixml</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneMitsubaExporter.h" />
+    <ClInclude Include="SugarSceneEditor.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Data">
       <UniqueIdentifier>{392d281b-8330-4036-9268-e190dc6c5dc0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Externals">
+      <UniqueIdentifier>{3e1a7f80-f941-458b-b086-508ad85922b3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Externals\pugixml">
+      <UniqueIdentifier>{13991e37-0094-4c93-9d7f-129c4d04aa79}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

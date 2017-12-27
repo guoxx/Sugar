@@ -77,7 +77,7 @@ bool FeatureDemoSceneRenderer::setPerMeshData(const CurrentWorkingData& currentD
     }
 }
 
-void FeatureDemoSceneRenderer::renderScene(RenderContext* pContext)
+void FeatureDemoSceneRenderer::renderScene(RenderContext* pContext, Camera* pCamera)
 {
     switch (mRenderMode)
     {
@@ -87,5 +87,5 @@ void FeatureDemoSceneRenderer::renderScene(RenderContext* pContext)
     case Mode::Transparent:
         if (mHasTransparentObject == false) return;
     }
-    SceneRenderer::renderScene(pContext);
+    SceneRenderer::renderScene(pContext, pCamera);
 }

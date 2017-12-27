@@ -29,6 +29,7 @@
 #include "Falcor.h"
 #include "SampleTest.h"
 #include "FeatureDemoSceneRenderer.h"
+#include "SugarSceneEditor.h"
 
 using namespace Falcor;
 
@@ -125,11 +126,13 @@ private:
     void shadowPass();
     void renderSkyBox();
     void lightingPass();
+    void renderEditor();
     void antiAliasing();
     void resolveMSAA();
     void runTAA();
     void postProcess();
     void ambientOcclusion();
+    void renderingComparisonWithMitsuba();
 
 
     void renderOpaqueObjects();
@@ -157,6 +160,8 @@ private:
 
     void setActiveCameraAspectRatio();
     void setSceneSampler(uint32_t maxAniso);
+
+    Camera* getActiveCamera() const;
 
     Texture::SharedPtr mpEnvMap;
     Sampler::SharedPtr mpSceneSampler;
@@ -208,6 +213,11 @@ private:
     void applyCameraPathState();
     bool mPerMaterialShader = false;
     bool mEnableDepthPass = true;
+
+    bool mCompareWithMitsuba = false;
+
+    bool mCameraLiveViewMode = false;
+    SugarSceneEditor::UniquePtr mpEditor = nullptr;
 
     // Testing 
     void onInitializeTesting() override;

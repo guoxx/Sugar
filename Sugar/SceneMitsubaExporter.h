@@ -26,30 +26,57 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ***************************************************************************/
 #pragma once
-#include "Falcor.h"
+#include <string>
+#include "Graphics/Scene/Scene.h"
+#include "pugixml.hpp"
 
-using namespace Falcor;
-
-class FeatureDemoSceneRenderer : public SceneRenderer
+namespace Falcor
 {
-public:
-    using SharedPtr = std::shared_ptr<FeatureDemoSceneRenderer>;
-    ~FeatureDemoSceneRenderer() = default;
-    enum class Mode
-    {
-        All,
-        Opaque,
-        Transparent
-    };
 
-    static SharedPtr create(const Scene::SharedPtr& pScene);
-    void setRenderMode(Mode renderMode) { mRenderMode = renderMode; }
-    void renderScene(RenderContext* pContext, Camera* pCamera) override;
-private:
-    bool setPerMeshData(const CurrentWorkingData& currentData, const Mesh* pMesh) override;
-    FeatureDemoSceneRenderer(const Scene::SharedPtr& pScene);
-    std::vector<bool> mTransparentMeshes;
-    Mode mRenderMode = Mode::All;
-    bool mHasOpaqueObjects = false;
-    bool mHasTransparentObject = false;
-};
+    class SceneMitsubaExporter
+    {
+    public:
+        friend class Scene;
+
+        enum : uint32_t
+        {
+            ExportGlobalSettings = 0x1,
+            ExportModels         = 0x2,
+            ExportLights         = 0x4,
+            ExportCameras        = 0x8,
+            ExportPaths          = 0x10,
+            ExportUserDefined    = 0x20,
+            ExportMaterials      = 0x40,
+            ExportAll = 0xFFFFFFFF
+        };
+
+        static bool saveScene(const std::string& filename, const Scene::SharedPtr& pScene, float viewportWidth, float viewportHeight, uint32_t exportOptions = ExportAll);
+
+        static const uint32_t kVersion = 2;
+
+    private:
+
+        SceneMitsubaExporter(const std::string& filename, const Scene::SharedPtr& pScene)
+            : mpScene(pScene), mFilename(filename) {}
+
+        bool save(float viewportWidth, float viewportHeight, uint32_t exportOptions);
+
+        void writeModels();
+        void writeLights();
+        void writeCameras();
+        void writeGlobalSettings(bool writeActivePath);
+        void writePaths();
+        void writeUserDefinedSection();
+        void writeMaterials();
+
+
+		pugi::xml_document mRootDoc;
+		pugi::xml_node mSceneNode;
+
+        Scene::SharedPtr mpScene = nullptr;
+        std::string mFilename;
+        float mViewportWidth = 1024.0f;
+        float mViewportHeight = 1024.0f;
+        uint32_t mExportOptions = 0;
+    };
+}

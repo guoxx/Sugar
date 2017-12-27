@@ -11,13 +11,20 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\Externals\pugixml-1.8\src\pugixml.cpp" />
     <ClCompile Include="FeatureDemo.cpp" />
     <ClCompile Include="FeatureDemoControls.cpp" />
     <ClCompile Include="FeatureDemoSceneRenderer.cpp" />
+    <ClCompile Include="SceneMitsubaExporter.cpp" />
+    <ClCompile Include="SugarSceneEditor.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\Externals\pugixml-1.8\src\pugiconfig.hpp" />
+    <ClInclude Include="..\Externals\pugixml-1.8\src\pugixml.hpp" />
     <ClInclude Include="FeatureDemo.h" />
     <ClInclude Include="FeatureDemoSceneRenderer.h" />
+    <ClInclude Include="SceneMitsubaExporter.h" />
+    <ClInclude Include="SugarSceneEditor.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Data\DepthPass.ps.slang" />

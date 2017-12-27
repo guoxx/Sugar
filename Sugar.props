@@ -2,12 +2,10 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros" />
-
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)Sugar\;$(SolutionDir)Externals\RenderDoc\src\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Sugar\;$(SolutionDir)Externals\pugixml-1.8\src\;$(SolutionDir)Externals\RenderDoc\src\;$(FALCOR_CORE_DIRECTORY)\Externals\RapidJson\include\;$(FALCOR_CORE_DIRECTORY)\Externals\ASSIMP\Include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
-
   <ItemGroup />
 </Project>

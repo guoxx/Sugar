@@ -136,6 +136,24 @@ void FeatureDemo::onGuiRender()
         }
     }
 
+    if(mpEditor)
+    {
+        if (mpGui->addButton("Export To Mitsuba"))
+        {
+            mpEditor->saveSceneToMitsuba();
+        }
+        if (mpGui->addButton("Compare With Mitsuba"))
+        {
+            mCompareWithMitsuba = true;
+        }
+
+        mpEditor->renderGui(mpGui.get());
+        if(mpSceneRenderer && mpSceneRenderer->getScene()->getCameraCount())
+        {
+            mpGui->addCheckBox("Preview Camera", mCameraLiveViewMode);
+        }
+    }
+
     if (mpSceneRenderer)
     {
 

@@ -11,47 +11,23 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="FeatureDemo.cpp" />
-    <ClCompile Include="FeatureDemoControls.cpp" />
-    <ClCompile Include="FeatureDemoSceneRenderer.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="FeatureDemo.h" />
-    <ClInclude Include="FeatureDemoSceneRenderer.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Data\DepthPass.ps.slang" />
-    <None Include="Data\DepthPass.vs.slang" />
-    <None Include="Data\FeatureDemo.ps.slang">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="Data\FeatureDemoCommon.hlsli" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Data\FeatureDemo.vs.slang">
-      <FileType>Document</FileType>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Data\ApplyAO.ps.slang">
-      <FileType>Document</FileType>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Externals\Falcor\Framework\Source\Falcor.vcxproj">
+    <ProjectReference Include="..\..\Externals\Falcor\Framework\Source\Falcor.vcxproj">
       <Project>{3b602f0e-3834-4f73-b97d-7dfc91597a98}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\Externals\RenderDoc\RenderDoc.vcxproj">
-      <Project>{5b9f813d-6ac9-45f3-bda7-330e1051f2b0}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\Tools\ImageComparer\ImageComparer.vcxproj">
-      <Project>{a8226f66-341a-4cb7-89ce-efd9c0e83024}</Project>
-    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="ImageComparer.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ImageComparer.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Data\ImageComparer.ps.slang" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{CBF85312-1093-45B1-BD01-04CA39C440FB}</ProjectGuid>
+    <ProjectGuid>{A8226F66-341A-4CB7-89CE-EFD9C0E83024}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>Sugar</RootNamespace>
+    <RootNamespace>SceneEditor</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -72,12 +48,10 @@
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <Import Project="..\Externals\Falcor\Framework\Source\Falcor.props" />
-    <Import Project="..\Sugar.props" />
+    <Import Project="..\..\Externals\Falcor\Framework\Source\Falcor.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <Import Project="..\Externals\Falcor\Framework\Source\Falcor.props" />
-    <Import Project="..\Sugar.props" />
+    <Import Project="..\..\Externals\Falcor\Framework\Source\Falcor.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">

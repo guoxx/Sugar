@@ -11,6 +11,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RenderDoc", "Externals\Rend
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Externals", "Externals", "{8BF366FA-45B8-4AAA-A55B-8FA8BE28D5D3}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ImageComparer", "Tools\ImageComparer\ImageComparer.vcxproj", "{A8226F66-341A-4CB7-89CE-EFD9C0E83024}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{A42FE31E-6965-4009-B4F2-ECBB372C03A1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -29,6 +33,10 @@ Global
 		{5B9F813D-6AC9-45F3-BDA7-330E1051F2B0}.Debug|x64.Build.0 = Debug|x64
 		{5B9F813D-6AC9-45F3-BDA7-330E1051F2B0}.Release|x64.ActiveCfg = Release|x64
 		{5B9F813D-6AC9-45F3-BDA7-330E1051F2B0}.Release|x64.Build.0 = Release|x64
+		{A8226F66-341A-4CB7-89CE-EFD9C0E83024}.Debug|x64.ActiveCfg = Debug|x64
+		{A8226F66-341A-4CB7-89CE-EFD9C0E83024}.Debug|x64.Build.0 = Debug|x64
+		{A8226F66-341A-4CB7-89CE-EFD9C0E83024}.Release|x64.ActiveCfg = Release|x64
+		{A8226F66-341A-4CB7-89CE-EFD9C0E83024}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -36,5 +44,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{3B602F0E-3834-4F73-B97D-7DFC91597A98} = {8BF366FA-45B8-4AAA-A55B-8FA8BE28D5D3}
 		{5B9F813D-6AC9-45F3-BDA7-330E1051F2B0} = {8BF366FA-45B8-4AAA-A55B-8FA8BE28D5D3}
+		{A8226F66-341A-4CB7-89CE-EFD9C0E83024} = {A42FE31E-6965-4009-B4F2-ECBB372C03A1}
 	EndGlobalSection
 EndGlobal

@@ -443,14 +443,14 @@ namespace Falcor
         std::string falcorRenderedFile;
         if (!findAvailableFilename(executableName + "_scene", outputDirectory, "xml", mitsubaSceneFile) ||
             !findAvailableFilename(executableName + "_mitsuba", outputDirectory, "exr", mitsubaRenderedFile) ||
-            !findAvailableFilename(executableName + "_falcor", outputDirectory, "png", falcorRenderedFile))
+            !findAvailableFilename(executableName + "_falcor", outputDirectory, "exr", falcorRenderedFile))
         {
             logError("Could not find available filename for rendering comparison");
             return;
         }
 
         // save screenshot
-        pTexture->captureToFile(0, 0, falcorRenderedFile);
+        pTexture->captureToFile(0, 0, falcorRenderedFile, Bitmap::FileFormat::ExrFile);
 
         if (mMitsubaSceneDirty)
         {

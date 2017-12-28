@@ -636,8 +636,11 @@ int main(int argc, char** argv)
 {
     FeatureDemo sample;
     SampleConfig config;
-    config.windowDesc.title = "Falcor Feature Demo";
+    config.windowDesc.title = "Sugar Editor";
     config.windowDesc.resizableWindow = false;
+    config.windowDesc.width = 1280;
+    config.windowDesc.height = 720;
+    config.deviceDesc.enableVsync = true;
 #ifdef _WIN32
     sample.run(config);
 #else

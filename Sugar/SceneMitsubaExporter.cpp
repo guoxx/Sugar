@@ -297,7 +297,7 @@ namespace Falcor
             pugi::xml_node coating = addNodeWithType(parent, "bsdf");
             setNodeAttr(coating, "type", "coating");
 
-            addSpectrum(coating, "intIOR", layer.extraParam.x);
+            addFloat(coating, "intIOR", layer.extraParam.x);
 
             if (layer.pTexture != nullptr)
             {
@@ -320,7 +320,7 @@ namespace Falcor
 
             addString(roughcoating, "distribution", getMaterialLayerNDF((uint32_t)layer.ndf));
 
-            addSpectrum(roughcoating, "intIOR", layer.extraParam.x);
+            addFloat(roughcoating, "intIOR", layer.extraParam.x);
 
             if (layer.pTexture != nullptr)
             {
@@ -440,7 +440,7 @@ namespace Falcor
                 pugi::xml_node dielectric = addNodeWithType(parent, "bsdf");
                 setNodeAttr(dielectric, "type", "dielectric");
 
-                addSpectrum(dielectric, "intIOR", layer.extraParam.x);
+                addFloat(dielectric, "intIOR", layer.extraParam.x);
 
                 if (layer.pTexture != nullptr)
                 {
@@ -463,7 +463,7 @@ namespace Falcor
 
                 addString(roughdielectric, "distribution", getMaterialLayerNDF((uint32_t)layer.ndf));
 
-                addSpectrum(roughdielectric, "intIOR", layer.extraParam.x);
+                addFloat(roughdielectric, "intIOR", layer.extraParam.x);
 
                 if (layer.pTexture != nullptr)
                 {

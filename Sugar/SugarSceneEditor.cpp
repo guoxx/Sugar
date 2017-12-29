@@ -420,15 +420,14 @@ namespace Falcor
 		std::string filename;
 		if (saveFileDialog(kFileFormatStringMitsuba, filename))
 		{
-            auto backBufferFBO = gpDevice->getSwapChainFbo();
-            const float backBufferWidth = backBufferFBO->getWidth();
-            const float backBufferHeight = backBufferFBO->getHeight();
-
-			SceneMitsubaExporter::saveScene(filename, mpScene, backBufferWidth, backBufferHeight);
+            SceneMitsubaExporter::ViewerInfo info;
+            info.mViewportWidth = gpDevice->getSwapChainFbo()->getWidth();
+            info.mViewportHeight = gpDevice->getSwapChainFbo()->getHeight();
+			SceneMitsubaExporter::saveScene(filename, mpScene, info);
 		}
 	}
 
-    void SugarSceneEditor::compareSceneWithMitsuba(Texture* pTexture)
+    void SugarSceneEditor::compareSceneWithMitsuba(Texture* pFalcorCapture, Camera* pActivaCamera, bool forceDirty)
     {
         std::string executableName = getExecutableName();
         std::string outputDirectory = getExecutableDirectory();
@@ -450,15 +449,16 @@ namespace Falcor
         }
 
         // save screenshot
-        pTexture->captureToFile(0, 0, falcorRenderedFile, Bitmap::FileFormat::ExrFile);
+        pFalcorCapture->captureToFile(0, 0, falcorRenderedFile, Bitmap::FileFormat::ExrFile);
 
-        if (mMitsubaSceneDirty)
+        if (mMitsubaSceneDirty || forceDirty)
         {
             // export mitsuba scene file
-            const auto backBufferFBO = gpDevice->getSwapChainFbo();
-            const float backBufferWidth = backBufferFBO->getWidth();
-            const float backBufferHeight = backBufferFBO->getHeight();
-            SceneMitsubaExporter::saveScene(mitsubaSceneFile, mpScene, backBufferWidth, backBufferHeight);
+            SceneMitsubaExporter::ViewerInfo info;
+            info.mViewportWidth = gpDevice->getSwapChainFbo()->getWidth();
+            info.mViewportHeight = gpDevice->getSwapChainFbo()->getHeight();
+            info.mpCamera = pActivaCamera;
+            SceneMitsubaExporter::saveScene(mitsubaSceneFile, mpScene, info);
 
             // rendered by mitsuba
             std::string opts = "-o \"" + mitsubaRenderedFile + "\"";
@@ -538,7 +538,7 @@ namespace Falcor
 
     void SugarSceneEditor::update(double currentTime)
     {
-        mpEditorSceneRenderer->update(currentTime);
+        mMitsubaSceneDirty |= mpEditorSceneRenderer->update(currentTime);
     }
 
     void SugarSceneEditor::initializeEditorRendering()

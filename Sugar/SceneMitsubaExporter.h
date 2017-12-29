@@ -38,6 +38,14 @@ namespace Falcor
     public:
         friend class Scene;
 
+        class ViewerInfo
+        {
+        public:
+            float mViewportWidth = 1024.0f;
+            float mViewportHeight = 1024.0f;
+            Camera* mpCamera = nullptr;
+        };
+
         enum : uint32_t
         {
             ExportGlobalSettings = 0x1,
@@ -50,16 +58,16 @@ namespace Falcor
             ExportAll = 0xFFFFFFFF
         };
 
-        static bool saveScene(const std::string& filename, const Scene::SharedPtr& pScene, float viewportWidth, float viewportHeight, uint32_t exportOptions = ExportAll);
+        static bool saveScene(const std::string& filename, const Scene::SharedPtr& pScene, const ViewerInfo& viewerInfo, uint32_t exportOptions = ExportAll);
 
         static const uint32_t kVersion = 2;
 
     private:
 
-        SceneMitsubaExporter(const std::string& filename, const Scene::SharedPtr& pScene)
-            : mpScene(pScene), mFilename(filename) {}
+        SceneMitsubaExporter(const std::string& filename, const Scene::SharedPtr& pScene, const ViewerInfo& viewerInfo)
+            : mpScene(pScene), mFilename(filename), mViewerInfo(viewerInfo) {}
 
-        bool save(float viewportWidth, float viewportHeight, uint32_t exportOptions);
+        bool save(uint32_t exportOptions);
 
         void writeModels();
         void writeLights();
@@ -75,8 +83,8 @@ namespace Falcor
 
         Scene::SharedPtr mpScene = nullptr;
         std::string mFilename;
-        float mViewportWidth = 1024.0f;
-        float mViewportHeight = 1024.0f;
+        ViewerInfo mViewerInfo;
+
         uint32_t mExportOptions = 0;
     };
 }

@@ -91,7 +91,7 @@ namespace Falcor
         void onResizeSwapChain();
 
         void saveSceneToMitsuba();
-        void compareSceneWithMitsuba(Texture* pTexture);
+        void compareSceneWithMitsuba(Texture* pFalcorCapture, Camera* pActivaCamera, bool forceDirty);
 
     private:
 

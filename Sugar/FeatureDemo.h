@@ -214,6 +214,7 @@ private:
     bool mPerMaterialShader = false;
     bool mEnableDepthPass = true;
 
+    bool mMitsubaDirty = false;
     bool mCompareWithMitsuba = false;
 
     bool mCameraLiveViewMode = false;

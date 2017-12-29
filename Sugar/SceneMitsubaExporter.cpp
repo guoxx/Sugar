@@ -36,10 +36,10 @@
 
 namespace Falcor
 {
-    bool SceneMitsubaExporter::saveScene(const std::string& filename, const Scene::SharedPtr& pScene, float viewportWidth, float viewportHeight, uint32_t exportOptions)
+    bool SceneMitsubaExporter::saveScene(const std::string& filename, const Scene::SharedPtr& pScene, const ViewerInfo& viewerInfo, uint32_t exportOptions)
     {
-        SceneMitsubaExporter exporter(filename, pScene);
-        return exporter.save(viewportWidth, viewportHeight, exportOptions);
+        SceneMitsubaExporter exporter(filename, pScene, viewerInfo);
+        return exporter.save(exportOptions);
     }
 
     static const char* getMaterialLayerNDF(uint32_t ndf)
@@ -227,11 +227,8 @@ namespace Falcor
         return sampler;
     }
 
-    bool SceneMitsubaExporter::save(float viewportWidth, float viewportHeight, uint32_t exportOptions)
+    bool SceneMitsubaExporter::save(uint32_t exportOptions)
     {
-        mViewportWidth = viewportWidth;
-        mViewportHeight = viewportHeight;
-
         mExportOptions = exportOptions;
 
 		mRootDoc.reset();
@@ -771,7 +768,7 @@ namespace Falcor
         }
     }
 
-    void addPerspectiveCamera(const Scene::SharedConstPtr& pScene, const Camera::SharedPtr pCamera, pugi::xml_node& parent, float viewportWidth, float viewportHeight)
+    void addPerspectiveCamera(const Scene::SharedConstPtr& pScene, const Camera* pCamera, pugi::xml_node& parent, float viewportWidth, float viewportHeight)
     {
 		pugi::xml_node sensor = addNodeWithType(parent, "sensor");
 		setNodeAttr(sensor, "type", "perspective");
@@ -811,8 +808,8 @@ namespace Falcor
 
 		addComments(mSceneNode, "Default Camera");
 
-	    const auto pCamera = mpScene->getActiveCamera();
-	    addPerspectiveCamera(mpScene, pCamera, mSceneNode, mViewportWidth, mViewportHeight);
+	    const Camera* pCamera = mViewerInfo.mpCamera ? mViewerInfo.mpCamera : mpScene->getActiveCamera().get();
+	    addPerspectiveCamera(mpScene, pCamera, mSceneNode, mViewerInfo.mViewportWidth, mViewerInfo.mViewportHeight);
     }
 
     void SceneMitsubaExporter::writePaths()

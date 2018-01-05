@@ -15,16 +15,21 @@
     <ClCompile Include="FeatureDemo.cpp" />
     <ClCompile Include="FeatureDemoControls.cpp" />
     <ClCompile Include="FeatureDemoSceneRenderer.cpp" />
+    <ClCompile Include="Graphics\AreaLight.cpp" />
     <ClCompile Include="SceneMitsubaExporter.cpp" />
     <ClCompile Include="SugarSceneEditor.cpp" />
+    <ClCompile Include="Utils\Geometry\Geometry.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Externals\pugixml-1.8\src\pugiconfig.hpp" />
     <ClInclude Include="..\Externals\pugixml-1.8\src\pugixml.hpp" />
     <ClInclude Include="FeatureDemo.h" />
     <ClInclude Include="FeatureDemoSceneRenderer.h" />
+    <ClInclude Include="Graphics\AreaLight.h" />
     <ClInclude Include="SceneMitsubaExporter.h" />
     <ClInclude Include="SugarSceneEditor.h" />
+    <ClInclude Include="Utils\Geometry\Bezier.h" />
+    <ClInclude Include="Utils\Geometry\Geometry.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Data\DepthPass.ps.slang" />
@@ -33,6 +38,7 @@
       <FileType>Document</FileType>
     </None>
     <None Include="Data\FeatureDemoCommon.hlsli" />
+    <None Include="Utils\Geometry\TeapotData.inc" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Data\FeatureDemo.vs.slang">

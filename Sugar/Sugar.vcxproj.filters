@@ -9,6 +9,12 @@
     </ClCompile>
     <ClCompile Include="SceneMitsubaExporter.cpp" />
     <ClCompile Include="SugarSceneEditor.cpp" />
+    <ClCompile Include="Graphics\AreaLight.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\Geometry\Geometry.cpp">
+      <Filter>Utils\Geometry</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FeatureDemo.h" />
@@ -21,6 +27,15 @@
     </ClInclude>
     <ClInclude Include="SceneMitsubaExporter.h" />
     <ClInclude Include="SugarSceneEditor.h" />
+    <ClInclude Include="Graphics\AreaLight.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\Geometry\Bezier.h">
+      <Filter>Utils\Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\Geometry\Geometry.h">
+      <Filter>Utils\Geometry</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Data">
@@ -31,6 +46,15 @@
     </Filter>
     <Filter Include="Externals\pugixml">
       <UniqueIdentifier>{13991e37-0094-4c93-9d7f-129c4d04aa79}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphics">
+      <UniqueIdentifier>{785f4799-0732-4cde-bc51-bc064d5d75e8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utils">
+      <UniqueIdentifier>{f3c2f34e-eeb1-4eca-a8e8-a38c29a78b9f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utils\Geometry">
+      <UniqueIdentifier>{2eaa0929-3736-4918-85e2-15962ea51158}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -51,6 +75,9 @@
     </None>
     <None Include="Data\DepthPass.ps.slang">
       <Filter>Data</Filter>
+    </None>
+    <None Include="Utils\Geometry\TeapotData.inc">
+      <Filter>Utils\Geometry</Filter>
     </None>
   </ItemGroup>
 </Project>

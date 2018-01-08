@@ -40,6 +40,7 @@
 #include "Utils/Math/FalcorMath.h"
 #include "Data/HostDeviceData.h"
 #include "Utils/StringUtils.h"
+#include "Graphics/AreaLight.h"
 
 namespace Falcor
 {
@@ -403,7 +404,33 @@ namespace Falcor
         }
     }
 
-    void SugarSceneEditor::saveScene()
+	void SugarSceneEditor::addSphereAreaLight(Gui* pGui)
+	{
+        if (mpPathEditor == nullptr)
+        {
+            if (pGui->addButton("Add Sphere Area Light"))
+            {
+                if (mpScene->getLightCount() >= MAX_LIGHT_SOURCES)
+                {
+                    msgBox("There cannot be more than 16 lights at a time in a scene!");
+                    return;
+                }
+
+                auto pNewLight = SphereAreaLight::create();
+                mpScene->addLight(pNewLight);
+				pNewLight->addToScene(mpScene);
+
+                // Name
+                std::string name = getUniqueNumberedName("SphereAreaLight", 0, mLightNames);
+                pNewLight->setName(name);
+                mLightNames.insert(name);
+
+                setSceneAsDirty();
+            }
+        }
+	}
+
+	void SugarSceneEditor::saveScene()
     {
         std::string filename;
         if (saveFileDialog(Scene::kFileFormatString, filename))
@@ -1160,6 +1187,7 @@ namespace Falcor
         {
             addPointLight(pGui);
             addDirectionalLight(pGui);
+			addSphereAreaLight(pGui);
 
             for (uint32_t i = 0; i < mpScene->getLightCount(); i++)
             {

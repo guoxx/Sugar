@@ -32,7 +32,7 @@
 static Model::SharedPtr CreateModel(DirectX::VertexCollection& vertices, DirectX::IndexCollection& indices)
 {
     std::vector<uint32_t> u32indices;
-    std::transform(indices.begin(), indices.end(), u32indices.begin(), [](uint16_t v) -> uint32_t { return v; });
+    std::transform(indices.begin(), indices.end(), std::back_inserter(u32indices), [](uint16_t v) -> uint32_t { return v; });
 
     SimpleModelImporter::VertexFormat vertLayout;
     vertLayout.attribs.push_back({SimpleModelImporter::AttribType::Position, 3, AttribFormat::AttribFormat_F32});

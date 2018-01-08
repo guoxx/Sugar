@@ -147,6 +147,7 @@ namespace Falcor
         void deleteLight(uint32_t id);
         void addPointLight(Gui* pGui);
         void addDirectionalLight(Gui* pGui);
+		void addSphereAreaLight(Gui* pGui);
 
         // Paths
         void addPath(Gui* pGui);

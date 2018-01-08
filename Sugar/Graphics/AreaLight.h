@@ -46,7 +46,7 @@ namespace Falcor
         using SharedPtr = std::shared_ptr<SphereAreaLight>;
         using SharedConstPtr = std::shared_ptr<const SphereAreaLight>;
 
-        static SharedPtr create(glm::vec3 position, float radius, glm::vec3 radiance);
+        static SharedPtr create(glm::vec3 position = glm::vec3(0.0f), float radius = 1.0f, glm::vec3 radiance = glm::vec3(1.0f));
 
         SphereAreaLight(glm::vec3 position, float radius, glm::vec3 radiance);
         ~SphereAreaLight();
@@ -121,7 +121,7 @@ namespace Falcor
         void createGeometry();
         void updateSurfaceArea();
 
-        Scene::SharedPtr mpScene;
+        std::weak_ptr<Scene> mpScene;
         Material::SharedPtr mpEmissiveMat;
         Scene::ModelInstance::SharedPtr mpModelInstance;
 

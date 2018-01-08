@@ -182,20 +182,21 @@ namespace Falcor
     void SphereAreaLight::addToScene(Scene::SharedPtr pScene)
     {
         mpScene = pScene;
-        mpScene->addModelInstance(mpModelInstance);
+        pScene->addModelInstance(mpModelInstance);
     }
 
     void SphereAreaLight::resetGeometry()
     {
         // cleanup
-        if (mpScene != nullptr && mpModelInstance != nullptr)
+		Scene::SharedPtr pScene = mpScene.lock();
+        if (pScene != nullptr && mpModelInstance != nullptr)
         {
-            for (uint32_t modelId = 0; modelId < mpScene->getModelCount(); ++modelId)
+            for (uint32_t modelId = 0; modelId < pScene->getModelCount(); ++modelId)
             {
-                Model::SharedPtr pModel = mpScene->getModel(modelId);
+                Model::SharedPtr pModel = pScene->getModel(modelId);
                 if (mpModelInstance->getObject() == pModel)
                 {
-                    mpScene->deleteModel(modelId);
+                    pScene->deleteModel(modelId);
                     break;
                 }
             }
@@ -206,14 +207,15 @@ namespace Falcor
 
     void SphereAreaLight::createGeometry()
     {
-        Model::SharedPtr pModel = CreateModelSphere(mRadius);
+        Model::SharedPtr pModel = CreateModelSphere(mRadius * 2);
         ((Mesh::SharedPtr&)pModel->getMesh(0))->setMaterial(mpEmissiveMat);
 
         mpModelInstance = Scene::ModelInstance::create(pModel, mPosition, glm::vec3(), glm::vec3(1), mName + "_Emissive");
 
-        if (mpScene)
+		Scene::SharedPtr pScene = mpScene.lock();
+        if (pScene)
         {
-            addToScene(mpScene);
+			pScene->addModelInstance(mpModelInstance);
         }
     }
 

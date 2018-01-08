@@ -18,7 +18,8 @@
     <ClCompile Include="Graphics\AreaLight.cpp" />
     <ClCompile Include="SceneMitsubaExporter.cpp" />
     <ClCompile Include="SugarSceneEditor.cpp" />
-    <ClCompile Include="Utils\Geometry\Geometry.cpp" />
+    <ClCompile Include="Utils\Geometry\GeometryUtility.cpp" />
+    <ClCompile Include="Utils\Geometry\Private\Geometry.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Externals\pugixml-1.8\src\pugiconfig.hpp" />
@@ -28,8 +29,9 @@
     <ClInclude Include="Graphics\AreaLight.h" />
     <ClInclude Include="SceneMitsubaExporter.h" />
     <ClInclude Include="SugarSceneEditor.h" />
-    <ClInclude Include="Utils\Geometry\Bezier.h" />
-    <ClInclude Include="Utils\Geometry\Geometry.h" />
+    <ClInclude Include="Utils\Geometry\GeometryUtility.h" />
+    <ClInclude Include="Utils\Geometry\Private\Bezier.h" />
+    <ClInclude Include="Utils\Geometry\Private\Geometry.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Data\DepthPass.ps.slang" />
@@ -38,7 +40,7 @@
       <FileType>Document</FileType>
     </None>
     <None Include="Data\FeatureDemoCommon.hlsli" />
-    <None Include="Utils\Geometry\TeapotData.inc" />
+    <None Include="Utils\Geometry\Private\TeapotData.inc" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Data\FeatureDemo.vs.slang">

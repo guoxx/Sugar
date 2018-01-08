@@ -157,6 +157,6 @@ namespace Falcor
     void SphereAreaLight::updateSurfaceArea()
     {
         // 4 * pi * r^2
-        mSurfaceArea = 4 * M_PI * mRadius * mRadius;
+        mSurfaceArea = float(4 * M_PI * mRadius * mRadius);
     }
 }

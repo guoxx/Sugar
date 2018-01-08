@@ -27,6 +27,7 @@
 ***************************************************************************/
 #pragma once
 #include "Graphics/Light.h"
+#include "Graphics/Scene/Scene.h"
 
 namespace Falcor
 {
@@ -45,9 +46,9 @@ namespace Falcor
         using SharedPtr = std::shared_ptr<SphereAreaLight>;
         using SharedConstPtr = std::shared_ptr<const SphereAreaLight>;
 
-        static SharedPtr create();
+        static SharedPtr create(glm::vec3 position, float radius, glm::vec3 radiance);
 
-        SphereAreaLight();
+        SphereAreaLight(glm::vec3 position, float radius, glm::vec3 radiance);
         ~SphereAreaLight();
         
         /** Get total light power (needed for light picking)
@@ -89,17 +90,44 @@ namespace Falcor
          */
         float getRadius() const { return mRadius; }
 
+        /*
+         * Set central position of sphere
+         */
+        void setPosition(glm::vec3 position);
+
+        /*
+         * Get central position of sphere
+         */
+        glm::vec3 getPosition() const { return mPosition; }
+
+        /*
+         *  Set radiance for diffuse emitter
+         */
+        void setRadiance(glm::vec3 r);
+
+        /*
+         *  Get radiance for diffuse emitter
+         */
+        glm::vec3 getRadiance() const { return mRadiance; }
+
+        /*
+         * Add area light to scene 
+         */
+        void addToScene(Scene::SharedPtr pScene);
+
     private:
 
+        void resetGeometry();
         void createGeometry();
         void updateSurfaceArea();
 
-        Model::MeshInstance::SharedPtr mpMeshInstance; ///< Geometry mesh data
-        Buffer::SharedPtr mIndexBuf;    ///< Buffer id for indices
-        Buffer::SharedPtr mVertexBuf;   ///< Buffer id for vertices
+        Scene::SharedPtr mpScene;
+        Material::SharedPtr mpEmissiveMat;
+        Scene::ModelInstance::SharedPtr mpModelInstance;
 
-        glm::vec3 mPosition;
-        float mRadius;
-        float mSurfaceArea;          ///< Surface area of the mesh
+        glm::vec3 mPosition = glm::vec3(0.0f);
+        float mRadius = 0.0f;
+        glm::vec3 mRadiance = glm::vec3(1.0f);
+        float mSurfaceArea = 0.0f;
     };
 }

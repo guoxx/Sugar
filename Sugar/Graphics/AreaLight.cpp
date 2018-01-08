@@ -28,31 +28,49 @@
 #include "Framework.h"
 #include "AreaLight.h"
 #include "Utils/Gui.h"
-#include "API/Device.h"
 #include "API/ConstantBuffer.h"
-#include "API/Buffer.h"
 #define _USE_MATH_DEFINES
 #include <math.h>
-#include "Data/VertexAttrib.h"
 #include "Graphics/Model/Model.h"
 #include "glm/gtc/epsilon.hpp"
+#include "Utils/Geometry/GeometryUtility.h"
 
+
+namespace
+{
+    Falcor::Material::SharedPtr createEmissiveMat(glm::vec3 emissiveColor)
+    {
+        Falcor::BasicMaterial basicMat;
+        basicMat.emissiveColor = emissiveColor;
+        return basicMat.convertToMaterial();
+    }
+}
 
 namespace Falcor
 {
 
-    SphereAreaLight::SharedPtr SphereAreaLight::create()
+    SphereAreaLight::SharedPtr SphereAreaLight::create(glm::vec3 position, float radius, glm::vec3 radiance)
     {
-        SphereAreaLight* pLight = new SphereAreaLight;
+        SphereAreaLight* pLight = new SphereAreaLight{position, radius, radiance};
         return SharedPtr(pLight);
     }
 
-    SphereAreaLight::SphereAreaLight()
+    SphereAreaLight::SphereAreaLight(glm::vec3 position, float radius, glm::vec3 radiance)
+        : mPosition{position}
+        , mRadius{radius}
+        , mRadiance{radiance}
     {
         mData.type = LightSphere;
+        mpEmissiveMat = createEmissiveMat(mRadiance);
+
+        createGeometry();
+        updateSurfaceArea();
     }
 
-    SphereAreaLight::~SphereAreaLight() = default;
+    SphereAreaLight::~SphereAreaLight()
+    {
+        resetGeometry();
+    }
 
     float SphereAreaLight::getPower()
     {
@@ -63,9 +81,9 @@ namespace Falcor
     {
         if(!group || pGui->beginGroup(group))
         {
-            if (mpMeshInstance)
+            if (mpModelInstance)
             {
-                mat4& mx = (mat4&)mpMeshInstance->getTransformMatrix();
+                mat4& mx = (mat4&)mpModelInstance->getTransformMatrix();
                 pGui->addFloat3Var("World Position", (vec3&)mx[3], -FLT_MAX, FLT_MAX);
             }
 
@@ -100,13 +118,12 @@ namespace Falcor
 // 			// Store the mesh CDF buffer id
 // 			mData.meshCDFPtr.ptr = mMeshCDFBuf->makeResident();
 // 		}
- 		mData.numIndices = uint32_t(mIndexBuf->getSize() / sizeof(glm::ivec3));
- 
+
  		// Get the surface area of the geometry mesh
  		mData.surfaceArea = mSurfaceArea;
  
  		// Fetch the mesh instance transformation
- 		mData.transMat = mpMeshInstance->getTransformMatrix();
+ 		mData.transMat = mpModelInstance->getTransformMatrix();
 
 // 		// Copy the material data
 // 		const Material::SharedPtr& pMaterial = mMeshData.pMesh->getMaterial();
@@ -117,8 +134,6 @@ namespace Falcor
     void SphereAreaLight::unloadGPUData()
     {
         // Unload GPU data by calling evict()
-        mIndexBuf->evict();
-        mVertexBuf->evict();
     }
 
     void SphereAreaLight::move(const glm::vec3& position, const glm::vec3& target, const glm::vec3& up)
@@ -128,7 +143,7 @@ namespace Falcor
         // Override target and up
         vec3 stillTarget = position + vec3(0, 0, 1);
         vec3 stillUp = vec3(0, 1, 0);
-        mpMeshInstance->move(position, stillTarget, stillUp);
+        mpModelInstance->move(position, stillTarget, stillUp);
     }
 
     void SphereAreaLight::setRadius(float r)
@@ -140,18 +155,66 @@ namespace Falcor
 
         mRadius = r;
 
+        resetGeometry();
         createGeometry();
         updateSurfaceArea();
     }
 
-    void SphereAreaLight::createGeometry()
+    void SphereAreaLight::setPosition(glm::vec3 position)
+    {
+        mPosition = position;
+
+        // Override target and up
+        vec3 stillTarget = position + vec3(0, 0, 1);
+        vec3 stillUp = vec3(0, 1, 0);
+        mpModelInstance->move(position, stillTarget, stillUp);
+    }
+
+    void SphereAreaLight::setRadiance(glm::vec3 r)
+    {
+        mRadiance = r;
+        if (mpEmissiveMat)
+        {
+            mpEmissiveMat->setLayerAlbedo(0, glm::vec4(mRadiance, 0.0f));
+        }
+    }
+
+    void SphereAreaLight::addToScene(Scene::SharedPtr pScene)
+    {
+        mpScene = pScene;
+        mpScene->addModelInstance(mpModelInstance);
+    }
+
+    void SphereAreaLight::resetGeometry()
     {
         // cleanup
-        mpMeshInstance = nullptr;
-        mIndexBuf = nullptr;
-        mVertexBuf = nullptr;
+        if (mpScene != nullptr && mpModelInstance != nullptr)
+        {
+            for (uint32_t modelId = 0; modelId < mpScene->getModelCount(); ++modelId)
+            {
+                Model::SharedPtr pModel = mpScene->getModel(modelId);
+                if (mpModelInstance->getObject() == pModel)
+                {
+                    mpScene->deleteModel(modelId);
+                    break;
+                }
+            }
+        }
 
-        // TODO
+        mpModelInstance = nullptr;
+    }
+
+    void SphereAreaLight::createGeometry()
+    {
+        Model::SharedPtr pModel = CreateModelSphere(mRadius);
+        ((Mesh::SharedPtr&)pModel->getMesh(0))->setMaterial(mpEmissiveMat);
+
+        mpModelInstance = Scene::ModelInstance::create(pModel, mPosition, glm::vec3(), glm::vec3(1), mName + "_Emissive");
+
+        if (mpScene)
+        {
+            addToScene(mpScene);
+        }
     }
 
     void SphereAreaLight::updateSurfaceArea()

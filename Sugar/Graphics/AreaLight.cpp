@@ -56,12 +56,12 @@ namespace Falcor
     }
 
     SphereAreaLight::SphereAreaLight(glm::vec3 position, float radius, glm::vec3 radiance)
-        : mPosition{position}
-        , mRadius{radius}
-        , mRadiance{radiance}
+        : mRadius{radius}
     {
         mData.type = LightSphere;
-        mpEmissiveMat = createEmissiveMat(mRadiance);
+        mData.worldPos = position;
+        mData.intensity = radiance;
+        mpEmissiveMat = createEmissiveMat(radiance);
 
         createGeometry();
         updateSurfaceArea();
@@ -107,28 +107,11 @@ namespace Falcor
 
     void SphereAreaLight::prepareGPUData()
     {
-        // DISABLED_FOR_D3D12
-        // Set OGL buffer pointers for indices, vertices, and texcoord
-// 		if (mData.indexPtr.ptr == 0ull)
-// 		{
-// 			mData.indexPtr.ptr = mIndexBuf->makeResident();
-// 			mData.vertexPtr.ptr = mVertexBuf->makeResident();
-// 			if (mTexCoordBuf)
-// 				mData.texCoordPtr.ptr = mTexCoordBuf->makeResident();
-// 			// Store the mesh CDF buffer id
-// 			mData.meshCDFPtr.ptr = mMeshCDFBuf->makeResident();
-// 		}
-
  		// Get the surface area of the geometry mesh
  		mData.surfaceArea = mSurfaceArea;
  
  		// Fetch the mesh instance transformation
  		mData.transMat = mpModelInstance->getTransformMatrix();
-
-// 		// Copy the material data
-// 		const Material::SharedPtr& pMaterial = mMeshData.pMesh->getMaterial();
-// 		if (pMaterial)
-// 			memcpy(&mData.material, &pMaterial->getData(), sizeof(MaterialData));
     }
 
     void SphereAreaLight::unloadGPUData()
@@ -138,12 +121,7 @@ namespace Falcor
 
     void SphereAreaLight::move(const glm::vec3& position, const glm::vec3& target, const glm::vec3& up)
     {
-        mPosition = position;
-
-        // Override target and up
-        vec3 stillTarget = position + vec3(0, 0, 1);
-        vec3 stillUp = vec3(0, 1, 0);
-        mpModelInstance->move(position, stillTarget, stillUp);
+        setWorldPositionInternal(position);
     }
 
     void SphereAreaLight::setRadius(float r)
@@ -160,22 +138,17 @@ namespace Falcor
         updateSurfaceArea();
     }
 
-    void SphereAreaLight::setPosition(glm::vec3 position)
+    void SphereAreaLight::setWorldPosition(const glm::vec3& pos)
     {
-        mPosition = position;
-
-        // Override target and up
-        vec3 stillTarget = position + vec3(0, 0, 1);
-        vec3 stillUp = vec3(0, 1, 0);
-        mpModelInstance->move(position, stillTarget, stillUp);
+        setWorldPositionInternal(pos);
     }
 
-    void SphereAreaLight::setRadiance(glm::vec3 r)
+    void SphereAreaLight::setIntensity(const glm::vec3& intensity)
     {
-        mRadiance = r;
+        mData.intensity = intensity;
         if (mpEmissiveMat)
         {
-            mpEmissiveMat->setLayerAlbedo(0, glm::vec4(mRadiance, 0.0f));
+            mpEmissiveMat->setLayerAlbedo(0, glm::vec4(intensity, 0.0f));
         }
     }
 
@@ -183,6 +156,28 @@ namespace Falcor
     {
         mpScene = pScene;
         pScene->addModelInstance(mpModelInstance);
+    }
+
+    void SphereAreaLight::setColorFromUI(const glm::vec3 & uiColor)
+    {
+        super::setColorFromUI(uiColor);
+        setIntensity(mData.intensity);
+    }
+
+    void SphereAreaLight::setIntensityFromUI(float intensity)
+    {
+        super::setIntensityFromUI(intensity);
+        setIntensity(mData.intensity);
+    }
+
+    void SphereAreaLight::setWorldPositionInternal(const glm::vec3 & pos)
+    {
+        mData.worldPos = pos;
+
+        // Override target and up
+        vec3 stillTarget = pos + vec3(0, 0, 1);
+        vec3 stillUp = vec3(0, 1, 0);
+        mpModelInstance->move(pos, stillTarget, stillUp);
     }
 
     void SphereAreaLight::resetGeometry()
@@ -210,7 +205,7 @@ namespace Falcor
         Model::SharedPtr pModel = CreateModelSphere(mRadius * 2);
         ((Mesh::SharedPtr&)pModel->getMesh(0))->setMaterial(mpEmissiveMat);
 
-        mpModelInstance = Scene::ModelInstance::create(pModel, mPosition, glm::vec3(), glm::vec3(1), mName + "_Emissive");
+        mpModelInstance = Scene::ModelInstance::create(pModel, mData.worldPos, glm::vec3(), glm::vec3(1), mName + "_Emissive");
 
 		Scene::SharedPtr pScene = mpScene.lock();
         if (pScene)

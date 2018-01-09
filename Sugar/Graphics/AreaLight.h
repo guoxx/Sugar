@@ -43,6 +43,7 @@ namespace Falcor
     class SphereAreaLight : public Light, public std::enable_shared_from_this<SphereAreaLight>
     {
     public:
+        using super = Light;
         using SharedPtr = std::shared_ptr<SphereAreaLight>;
         using SharedConstPtr = std::shared_ptr<const SphereAreaLight>;
 
@@ -93,22 +94,20 @@ namespace Falcor
         /*
          * Set central position of sphere
          */
-        void setPosition(glm::vec3 position);
+        void setWorldPosition(const glm::vec3& pos);
 
-        /*
-         * Get central position of sphere
-         */
-        glm::vec3 getPosition() const { return mPosition; }
+        /** Get the light's world-space position
+        */
+        const glm::vec3& getWorldPosition() const { return mData.worldPos; }
 
         /*
          *  Set radiance for diffuse emitter
          */
-        void setRadiance(glm::vec3 r);
+        void setIntensity(const glm::vec3& intensity);
 
-        /*
-         *  Get radiance for diffuse emitter
-         */
-        glm::vec3 getRadiance() const { return mRadiance; }
+        /** Get the light intensity.
+        */
+        const glm::vec3& getIntensity() const { return mData.intensity; }
 
         /*
          * Add area light to scene 
@@ -116,7 +115,11 @@ namespace Falcor
         void addToScene(Scene::SharedPtr pScene);
 
     private:
+        virtual void setColorFromUI(const glm::vec3& uiColor) override;
+        virtual void setIntensityFromUI(float intensity) override;
 
+
+        void setWorldPositionInternal(const glm::vec3& pos);
         void resetGeometry();
         void createGeometry();
         void updateSurfaceArea();
@@ -125,9 +128,7 @@ namespace Falcor
         Material::SharedPtr mpEmissiveMat;
         Scene::ModelInstance::SharedPtr mpModelInstance;
 
-        glm::vec3 mPosition = glm::vec3(0.0f);
         float mRadius = 0.0f;
-        glm::vec3 mRadiance = glm::vec3(1.0f);
         float mSurfaceArea = 0.0f;
     };
 }

@@ -62,6 +62,12 @@ namespace Falcor
         */
         void setIntoConstantBuffer(ConstantBuffer* pBuffer, const std::string& varName) override;
 
+        /** Set the light parameters into a program. To use this you need to include/import 'ShaderCommon' inside your shader.
+            \param[in] pBuffer The constant buffer to set the parameters into.
+            \param[in] offset Byte offset into the constant buffer to set data to.
+        */
+        void setIntoConstantBuffer(ConstantBuffer* pBuffer, size_t offset) override;
+
         /** Render UI elements for this light.
             \param[in] pGui The GUI to create the elements with
             \param[in] group Optional. If specified, creates a UI group to display elements within

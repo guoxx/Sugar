@@ -105,6 +105,15 @@ namespace Falcor
         Light::setIntoConstantBuffer(pBuffer, varName);
     }
 
+    void SphereAreaLight::setIntoConstantBuffer(ConstantBuffer* pBuffer, size_t offset)
+    {
+        // Upload data to GPU
+        prepareGPUData();
+
+        // Call base class method;
+        Light::setIntoConstantBuffer(pBuffer, offset);
+    }
+
     void SphereAreaLight::prepareGPUData()
     {
  		// Get the surface area of the geometry mesh

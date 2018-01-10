@@ -44,6 +44,11 @@ namespace
         basicMat.emissiveColor = emissiveColor;
         return basicMat.convertToMaterial();
     }
+
+    std::string getEmissiveModelName(const std::string& lightName)
+    {
+        return lightName + "_Emissive";
+    }
 }
 
 namespace Falcor
@@ -83,8 +88,19 @@ namespace Falcor
         {
             if (mpModelInstance)
             {
-                mat4& mx = (mat4&)mpModelInstance->getTransformMatrix();
-                pGui->addFloat3Var("World Position", (vec3&)mx[3], -FLT_MAX, FLT_MAX);
+                glm::vec3 pos = mData.worldPos;
+                if (pGui->addFloat3Var("World Position", pos, -FLT_MAX, FLT_MAX))
+                {
+                    setWorldPosition(pos);
+                }
+            }
+
+            {
+                float radius = mRadius;
+                if (pGui->addFloatVar("Radius", radius, mRadiusMin, mRadiusMax, mRadiusStep))
+                {
+                    setRadius(radius);
+                }
             }
 
             Light::renderUI(pGui);
@@ -214,7 +230,8 @@ namespace Falcor
         Model::SharedPtr pModel = CreateModelSphere(mRadius * 2);
         ((Mesh::SharedPtr&)pModel->getMesh(0))->setMaterial(mpEmissiveMat);
 
-        mpModelInstance = Scene::ModelInstance::create(pModel, mData.worldPos, glm::vec3(), glm::vec3(1), mName + "_Emissive");
+        mpModelInstance = Scene::ModelInstance::create(pModel, glm::vec3(), glm::vec3(), glm::vec3(1), getEmissiveModelName(mName));
+        setWorldPositionInternal(mData.worldPos);
 
 		Scene::SharedPtr pScene = mpScene.lock();
         if (pScene)
@@ -227,5 +244,14 @@ namespace Falcor
     {
         // 4 * pi * r^2
         mSurfaceArea = float(4 * M_PI * mRadius * mRadius);
+    }
+
+    const void SphereAreaLight::setName(const std::string& name)
+    {
+        mName = name;
+        if (mpModelInstance)
+        {
+            mpModelInstance->setName(getEmissiveModelName(name));
+        }
     }
 }

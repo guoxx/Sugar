@@ -120,6 +120,8 @@ namespace Falcor
          */
         void addToScene(Scene::SharedPtr pScene);
 
+        const void setName(const std::string& name);
+
     private:
         virtual void setColorFromUI(const glm::vec3& uiColor) override;
         virtual void setIntensityFromUI(float intensity) override;
@@ -136,5 +138,9 @@ namespace Falcor
 
         float mRadius = 0.0f;
         float mSurfaceArea = 0.0f;
+
+        constexpr static float mRadiusMin = 0.01f;
+        constexpr static float mRadiusMax = 1000.01f;
+        constexpr static float mRadiusStep = 0.01f;
     };
 }

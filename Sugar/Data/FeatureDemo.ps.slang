@@ -28,7 +28,7 @@
 #include "FeatureDemoCommon.hlsli"
 
 __import BSDFs;
-__import Shading;
+__import SugarShading;
 __import Helpers;
 
 layout(set = 1, binding = 0) Texture2D gEnvMap;
@@ -59,8 +59,7 @@ PsOut main(MainVsOut vOut, float4 pixelCrd : SV_POSITION)
     opacity = getDiffuseColor(shAttr).a;
 #endif
 
-    [unroll]
-    for (uint l = 0; l < _LIGHT_COUNT; l++)
+    for (uint l = 0; l < gLightsCount; l++)
     {
         float shadowFactor = 1;
 #ifdef _ENABLE_SHADOWS

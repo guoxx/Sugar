@@ -132,6 +132,8 @@ namespace Falcor
 
     void SphereAreaLight::prepareGPUData()
     {
+        mData.radius = mRadius;
+
  		// Get the surface area of the geometry mesh
  		mData.surfaceArea = mSurfaceArea;
  

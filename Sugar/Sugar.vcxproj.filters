@@ -88,5 +88,11 @@
     <None Include="Utils\Geometry\Private\TeapotData.inc">
       <Filter>Utils\Geometry\Private</Filter>
     </None>
+    <None Include="Data\SugarShading.slang">
+      <Filter>Data</Filter>
+    </None>
+    <None Include="Data\SugarLights.slang">
+      <Filter>Data</Filter>
+    </None>
   </ItemGroup>
 </Project>

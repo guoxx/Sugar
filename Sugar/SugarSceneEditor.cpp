@@ -456,13 +456,8 @@ namespace Falcor
 
     void SugarSceneEditor::compareSceneWithMitsuba(Texture* pFalcorCapture, Camera* pActivaCamera, bool forceDirty)
     {
-        std::string executableName = getExecutableName();
-        std::string outputDirectory = getExecutableDirectory();
-        outputDirectory += "/Temp";
-        if (!isDirectoryExists(outputDirectory))
-        {
-            createDirectory(outputDirectory);
-        }
+        const std::string executableName = getExecutableName();
+        const std::string outputDirectory = getTempDirectory();
 
         std::string mitsubaSceneFile;
         std::string mitsubaRenderedFile;

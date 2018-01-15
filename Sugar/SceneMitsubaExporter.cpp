@@ -33,6 +33,7 @@
 #include "Graphics/Scene/Editor/SceneEditor.h"
 #include "Externals/ASSIMP/Include/assimp/Exporter.hpp"
 #include "glm/gtc/quaternion.hpp"
+#include <fstream>
 
 namespace Falcor
 {
@@ -633,6 +634,91 @@ namespace Falcor
         }
     }
 
+    void exportMeshDataToOBJ(const Model* pModel, std::string& filename)
+    {
+        std::ofstream fs(filename);
+
+        for(uint32_t meshIdx = 0; meshIdx < pModel->getMeshCount(); ++meshIdx)
+        {
+            const Mesh::SharedPtr& pMesh = pModel->getMesh(meshIdx);
+            Vao::SharedPtr pVao = pMesh->getVao();
+
+            if(pVao->getPrimitiveTopology() != Vao::Topology::TriangleList)
+            {
+                logError("obj exporter doesn't support topologies other than triangles.");
+            }
+
+            const uint32_t vertCnt = pMesh->getVertexCount();
+            const uint32_t vbCnt = pVao->getVertexBuffersCount();
+            for (uint32_t vbIdx = 0; vbIdx < vbCnt; ++vbIdx)
+            {
+                Buffer::SharedPtr pVB = pVao->getVertexBuffer(vbIdx);
+                float* pData = (float*)pVB->map(Buffer::MapType::Read);
+
+                const VertexBufferLayout* pLayout = pVao->getVertexLayout()->getBufferLayout(vbIdx).get();
+                for (uint32_t elemIdx = 0; elemIdx < pLayout->getElementCount(); ++elemIdx)
+                {
+                    if (pLayout->getElementName(elemIdx) == VERTEX_POSITION_NAME)
+                    {
+                        uint32_t dataIdx = 0;
+                        assert(pLayout->getElementFormat(elemIdx) == ResourceFormat::RGB32Float);
+                        for (uint32_t vertIdx = 0; vertIdx < vertCnt; ++vertIdx)
+                        {
+                            fs << "v " << pData[dataIdx] << " " << pData[dataIdx + 1] << " " << pData[dataIdx + 2] <<
+                                std::endl;
+                            dataIdx += 3;
+                        }
+                    }
+                    else if (pLayout->getElementName(elemIdx) == VERTEX_NORMAL_NAME)
+                    {
+                        uint32_t dataIdx = 0;
+                        assert(pLayout->getElementFormat(elemIdx) == ResourceFormat::RGB32Float);
+                        for (uint32_t vertIdx = 0; vertIdx < vertCnt; ++vertIdx)
+                        {
+                            fs << "vn " << pData[dataIdx] << " " << pData[dataIdx + 1] << " " << pData[dataIdx + 2] <<
+                                std::endl;
+                            dataIdx += 3;
+                        }
+                    }
+                    else if (pLayout->getElementName(elemIdx) == VERTEX_TEXCOORD_NAME)
+                    {
+                        uint32_t dataIdx = 0;
+                        assert(pLayout->getElementFormat(elemIdx) == ResourceFormat::RG32Float);
+                        for (uint32_t vertIdx = 0; vertIdx < vertCnt; ++vertIdx)
+                        {
+                            fs << "vt " << pData[dataIdx] << " " << pData[dataIdx + 1] << " " << pData[dataIdx + 2] <<
+                                std::endl;
+                            dataIdx += 3;
+                        }
+                    }
+                    else
+                    {
+                        logError("Vertex attribute not supported.");
+                    }
+                }
+
+                fs << "# " << vertCnt << " vertices" << std::endl;
+
+                pVB->unmap();
+            }
+
+
+            {
+                Buffer::SharedPtr pIB = pVao->getIndexBuffer();
+                assert(pVao->getIndexBufferFormat() == ResourceFormat::R32Uint);
+                uint32_t* pData = (uint32_t*)pIB->map(Buffer::MapType::Read);
+                for (uint32_t triangleIdx = 0; triangleIdx < pMesh->getPrimitiveCount(); ++triangleIdx)
+                {
+                        fs << "f " << (pData[3 * triangleIdx] + 1) << " " 
+                                   << (pData[3 * triangleIdx + 1] + 1) << " " 
+                                   << (pData[3 * triangleIdx + 2] + 1) << std::endl;
+                }
+                
+                pIB->unmap();
+            }
+        }
+    }
+
     void addWavefrontOBJ(const Scene::SharedPtr& pScene, uint32_t modelID, pugi::xml_node& parent)
     {
         assert(pScene->getModelInstanceCount(modelID) > 0);
@@ -650,9 +736,16 @@ namespace Falcor
             pugi::xml_node obj = addNodeWithType(parent, "shape");
             setNodeAttr(obj, "type", "obj");
 
-            addComments(obj, pInstance->getName().c_str());
+            addComments(obj, pInstance->getName());
 
-            addString(obj, "filename", pModel->getAbsoluteFilename().c_str());
+            std::string filename = pModel->getAbsoluteFilename();
+            if (filename.length() <= 0)
+            {
+                const std::string dir = getTempDirectory();
+                findAvailableFilename(pModel->getName().length() > 0 ? pModel->getName() : "Untitled", dir, "obj", filename);
+                exportMeshDataToOBJ(pModel, filename);
+            }
+            addString(obj, "filename", filename);
 
             addTransformWithMatrix(obj, "toWorld", pInstance->getTransformMatrix());
 

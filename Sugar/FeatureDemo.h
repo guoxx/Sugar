@@ -214,8 +214,13 @@ private:
     bool mPerMaterialShader = false;
     bool mEnableDepthPass = true;
 
+    std::string mLastMitsubaSceneFile;
+    std::string mLastMitsubaRenderedFile;
+    int32_t mMitsubaSampleCount = 64;
     bool mCompareWithMitsuba = false;
     bool mMitsubaForceRender = false;
+    void saveSceneToMitsuba(const Scene* pScene);
+    void compareSceneWithMitsuba(Texture* pFalcorCapture, const Scene* pScene, const Camera* pActivaCamera, bool mitsubaRender);
 
     bool mCameraLiveViewMode = false;
     SugarSceneEditor::UniquePtr mpEditor = nullptr;

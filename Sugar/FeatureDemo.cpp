@@ -26,6 +26,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ***************************************************************************/
 #include "FeatureDemo.h"
+#include "SceneMitsubaExporter.h"
 
 //  Halton Sampler Pattern.
 static const float kHaltonSamplePattern[8][2] = { { 1.0f / 2.0f - 0.5f, 1.0f / 3.0f - 0.5f },
@@ -466,9 +467,7 @@ void FeatureDemo::renderingComparisonWithMitsuba()
     if (mCompareWithMitsuba)
     {
         mCompareWithMitsuba = false;
-
-        mpEditor->compareSceneWithMitsuba(mpResolveFbo->getColorTexture(0).get(), getActiveCamera(), mMitsubaForceRender);
-        //mpEditor->compareSceneWithMitsuba(gpDevice->getSwapChainFbo()->getColorTexture(0).get());
+        compareSceneWithMitsuba(mpResolveFbo->getColorTexture(0).get(), mpSceneRenderer->getScene().get(), getActiveCamera(), mMitsubaForceRender);
     }
 }
 
@@ -600,6 +599,84 @@ void FeatureDemo::setActiveCameraAspectRatio()
     uint32_t w = mpDefaultFBO->getWidth();
     uint32_t h = mpDefaultFBO->getHeight();
     getActiveCamera()->setAspectRatio((float)w / (float)h);
+}
+
+void FeatureDemo::saveSceneToMitsuba(const Scene* pScene)
+{
+    static const char* kFileFormatStringMitsuba = "XML File\0*.xml\0\0";
+
+    std::string filename;
+    if (saveFileDialog(kFileFormatStringMitsuba, filename))
+    {
+        SceneMitsubaExporter::MitsubaCfg info;
+        info.mViewportWidth = gpDevice->getSwapChainFbo()->getWidth();
+        info.mViewportHeight = gpDevice->getSwapChainFbo()->getHeight();
+        info.sampleCount = mMitsubaSampleCount;
+        SceneMitsubaExporter::saveScene(filename, pScene, info);
+    }
+}
+
+void FeatureDemo::compareSceneWithMitsuba(Texture* pFalcorCapture, const Scene* pScene, const Camera* pActivaCamera, bool mitsubaRender)
+{
+    const std::string executableName = getExecutableName();
+    const std::string outputDirectory = getTempDirectory();
+
+    std::string mitsubaSceneFile;
+    std::string mitsubaRenderedFile;
+    std::string falcorRenderedFile;
+    if (!findAvailableFilename(executableName + "_scene", outputDirectory, "xml", mitsubaSceneFile) ||
+        !findAvailableFilename(executableName + "_mitsuba", outputDirectory, "exr", mitsubaRenderedFile) ||
+        !findAvailableFilename(executableName + "_falcor", outputDirectory, "exr", falcorRenderedFile))
+    {
+        logError("Could not find available filename for rendering comparison");
+        return;
+    }
+
+    // save screenshot
+    pFalcorCapture->captureToFile(0, 0, falcorRenderedFile, Bitmap::FileFormat::ExrFile);
+
+    const bool isMtsFilesExist = doesFileExist(mLastMitsubaSceneFile) && doesFileExist(mLastMitsubaRenderedFile);
+    if (mitsubaRender || !isMtsFilesExist)
+    {
+        // export mitsuba scene file
+        SceneMitsubaExporter::MitsubaCfg info;
+        info.mViewportWidth = gpDevice->getSwapChainFbo()->getWidth();
+        info.mViewportHeight = gpDevice->getSwapChainFbo()->getHeight();
+        info.mpCamera = pActivaCamera;
+        info.sampleCount = mMitsubaSampleCount;
+        SceneMitsubaExporter::saveScene(mitsubaSceneFile, pScene, info);
+
+        // rendered by mitsuba
+        std::string opts = "-o \"" + mitsubaRenderedFile + "\"";
+        opts += " \"" + mitsubaSceneFile + "\"";
+        Falcor::createProcess("mitsuba", opts, true);
+
+        mLastMitsubaSceneFile = mitsubaSceneFile;
+        mLastMitsubaRenderedFile = mitsubaRenderedFile;
+    }
+    else
+    {
+        mitsubaSceneFile = mLastMitsubaSceneFile;
+        mitsubaRenderedFile = mLastMitsubaRenderedFile;
+    }
+
+    {
+        // wait for screenshot saving thread
+        int counter = 20;
+        while (counter > 0)
+        {
+            if (doesFileExist(falcorRenderedFile)) { break; }
+
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+            --counter;
+        }
+    }
+
+    // launch ImageComparer
+    std::string opts = "-left " + falcorRenderedFile;
+    opts += " -right " + mitsubaRenderedFile;
+    opts += " -srgb";
+    Falcor::createProcess("ImageComparer", opts, true);
 }
 
 void FeatureDemo::onInitializeTesting()

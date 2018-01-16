@@ -33,7 +33,6 @@
 #include "glm/detail/func_trigonometric.hpp"
 #include "Utils/Platform/OS.h"
 #include "Graphics/Scene/SceneExporter.h"
-#include "SceneMitsubaExporter.h"
 #include "Graphics/Model/AnimationController.h"
 #include "API/Device.h"
 #include "Graphics/Model/ModelRenderer.h"
@@ -438,82 +437,6 @@ namespace Falcor
             SceneExporter::saveScene(filename, mpScene);
             mSceneDirty = false;
         }
-    }
-
-	void SugarSceneEditor::saveSceneToMitsuba()
-	{
-		static const char* kFileFormatStringMitsuba = "XML File\0*.xml\0\0";
-
-		std::string filename;
-		if (saveFileDialog(kFileFormatStringMitsuba, filename))
-		{
-            SceneMitsubaExporter::ViewerInfo info;
-            info.mViewportWidth = gpDevice->getSwapChainFbo()->getWidth();
-            info.mViewportHeight = gpDevice->getSwapChainFbo()->getHeight();
-			SceneMitsubaExporter::saveScene(filename, mpScene, info);
-		}
-	}
-
-    void SugarSceneEditor::compareSceneWithMitsuba(Texture* pFalcorCapture, Camera* pActivaCamera, bool mitsubaRender)
-    {
-        const std::string executableName = getExecutableName();
-        const std::string outputDirectory = getTempDirectory();
-
-        std::string mitsubaSceneFile;
-        std::string mitsubaRenderedFile;
-        std::string falcorRenderedFile;
-        if (!findAvailableFilename(executableName + "_scene", outputDirectory, "xml", mitsubaSceneFile) ||
-            !findAvailableFilename(executableName + "_mitsuba", outputDirectory, "exr", mitsubaRenderedFile) ||
-            !findAvailableFilename(executableName + "_falcor", outputDirectory, "exr", falcorRenderedFile))
-        {
-            logError("Could not find available filename for rendering comparison");
-            return;
-        }
-
-        // save screenshot
-        pFalcorCapture->captureToFile(0, 0, falcorRenderedFile, Bitmap::FileFormat::ExrFile);
-
-        const bool isMtsFilesExist = doesFileExist(mLastMitsubaSceneFile) && doesFileExist(mLastMitsubaRenderedFile);
-        if (mitsubaRender || !isMtsFilesExist)
-        {
-            // export mitsuba scene file
-            SceneMitsubaExporter::ViewerInfo info;
-            info.mViewportWidth = gpDevice->getSwapChainFbo()->getWidth();
-            info.mViewportHeight = gpDevice->getSwapChainFbo()->getHeight();
-            info.mpCamera = pActivaCamera;
-            SceneMitsubaExporter::saveScene(mitsubaSceneFile, mpScene, info);
-
-            // rendered by mitsuba
-            std::string opts = "-o \"" + mitsubaRenderedFile + "\"";
-            opts += " \"" + mitsubaSceneFile + "\"";
-            Falcor::createProcess("mitsuba", opts, true);
-
-            mLastMitsubaSceneFile = mitsubaSceneFile;
-            mLastMitsubaRenderedFile = mitsubaRenderedFile;
-        }
-        else
-        {
-            mitsubaSceneFile = mLastMitsubaSceneFile;
-            mitsubaRenderedFile = mLastMitsubaRenderedFile;
-        }
-
-        {
-            // wait for screenshot saving thread
-            int counter = 20;
-            while (counter > 0)
-            {
-                if (doesFileExist(falcorRenderedFile)) { break; }
-
-                std::this_thread::sleep_for(std::chrono::seconds(1));
-                --counter;
-            }
-        }
-
-        // launch ImageComparer
-        std::string opts = "-left " + falcorRenderedFile;
-        opts += " -right " + mitsubaRenderedFile;
-        opts += " -srgb";
-        Falcor::createProcess("ImageComparer", opts, true);
     }
 
     //////////////////////////////////////////////////////////////////////////

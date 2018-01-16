@@ -38,12 +38,13 @@ namespace Falcor
     public:
         friend class Scene;
 
-        class ViewerInfo
+        class MitsubaCfg
         {
         public:
             float mViewportWidth = 1024.0f;
             float mViewportHeight = 1024.0f;
-            Camera* mpCamera = nullptr;
+            const Camera* mpCamera = nullptr;
+            int32_t sampleCount = 64;
         };
 
         enum : uint32_t
@@ -58,14 +59,14 @@ namespace Falcor
             ExportAll = 0xFFFFFFFF
         };
 
-        static bool saveScene(const std::string& filename, const Scene::SharedPtr& pScene, const ViewerInfo& viewerInfo, uint32_t exportOptions = ExportAll);
+        static bool saveScene(const std::string& filename, const Scene* pScene, const MitsubaCfg& mtsCfg, uint32_t exportOptions = ExportAll);
 
         static const uint32_t kVersion = 2;
 
     private:
 
-        SceneMitsubaExporter(const std::string& filename, const Scene::SharedPtr& pScene, const ViewerInfo& viewerInfo)
-            : mpScene(pScene), mFilename(filename), mViewerInfo(viewerInfo) {}
+        SceneMitsubaExporter(const std::string& filename, const Scene* pScene, const MitsubaCfg& mtsCfg)
+            : mpScene(pScene), mFilename(filename), mMitsubaCfg(mtsCfg) {}
 
         bool save(uint32_t exportOptions);
 
@@ -81,9 +82,9 @@ namespace Falcor
 		pugi::xml_document mRootDoc;
 		pugi::xml_node mSceneNode;
 
-        Scene::SharedPtr mpScene = nullptr;
+        const Scene* mpScene = nullptr;
         std::string mFilename;
-        ViewerInfo mViewerInfo;
+        MitsubaCfg mMitsubaCfg;
 
         uint32_t mExportOptions = 0;
     };

@@ -138,21 +138,6 @@ void FeatureDemo::onGuiRender()
 
     if(mpEditor)
     {
-        if (mpGui->addButton("Export To Mitsuba"))
-        {
-            mpEditor->saveSceneToMitsuba();
-        }
-        if (mpGui->addButton("Compare With Mitsuba"))
-        {
-            mCompareWithMitsuba = true;
-            mMitsubaForceRender = false;
-        }
-        if (mpGui->addButton("Compare With Mitsuba(Re-render)", true))
-        {
-            mCompareWithMitsuba = true;
-            mMitsubaForceRender = true;
-        }
-
         mpEditor->renderGui(mpGui.get());
         if(mpSceneRenderer && mpSceneRenderer->getScene()->getCameraCount())
         {
@@ -170,6 +155,29 @@ void FeatureDemo::onGuiRender()
             {
                 initSkyBox(filename);
             }
+        }
+
+        if (mpGui->beginGroup("Mitsuba"))
+        {
+            if (mpGui->addButton("Export To Mitsuba"))
+            {
+                saveSceneToMitsuba(mpSceneRenderer->getScene().get());
+            }
+            if (mpGui->addButton("Compare With Mitsuba"))
+            {
+                mCompareWithMitsuba = true;
+                mMitsubaForceRender = false;
+            }
+            if (mpGui->addButton("Compare With Mitsuba(Re-render)", true))
+            {
+                mCompareWithMitsuba = true;
+                mMitsubaForceRender = true;
+            }
+
+            mpGui->addSeparator();
+            mpGui->addIntVar("Sampler - Sample Count", mMitsubaSampleCount, 1);
+
+            mpGui->endGroup();
         }
 
         if(mpGui->beginGroup("Scene Settings"))

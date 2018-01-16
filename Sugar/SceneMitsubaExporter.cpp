@@ -37,10 +37,10 @@
 
 namespace Falcor
 {
-    bool SceneMitsubaExporter::saveScene(const std::string& filename, const Scene::SharedPtr& pScene,
-                                         const ViewerInfo& viewerInfo, uint32_t exportOptions)
+    bool SceneMitsubaExporter::saveScene(const std::string& filename, const Scene* pScene,
+                                         const MitsubaCfg& mtsCfg, uint32_t exportOptions)
     {
-        SceneMitsubaExporter exporter(filename, pScene, viewerInfo);
+        SceneMitsubaExporter exporter(filename, pScene, mtsCfg);
         return exporter.save(exportOptions);
     }
 
@@ -215,11 +215,11 @@ namespace Falcor
         return ingetrator;
     }
 
-    pugi::xml_node addSampler(pugi::xml_node& parent)
+    pugi::xml_node addSampler(pugi::xml_node& parent, int32_t sampleCount)
     {
         pugi::xml_node sampler = addNodeWithType(parent, "sampler");
         setNodeAttr(sampler, "type", "independent");
-        addInteger(sampler, "sampleCount", 64);
+        addInteger(sampler, "sampleCount", sampleCount);
         return sampler;
     }
 
@@ -740,7 +740,7 @@ namespace Falcor
         }
     }
 
-    void addWavefrontOBJ(const Scene::SharedPtr& pScene, uint32_t modelID, pugi::xml_node& parent)
+    void addWavefrontOBJ(const Scene* pScene, uint32_t modelID, pugi::xml_node& parent)
     {
         assert(pScene->getModelInstanceCount(modelID) > 0);
 
@@ -834,7 +834,7 @@ namespace Falcor
         addVector(pointLight, "direction", pLight->getWorldDirection());
     }
 
-    void addPunctualLight(const Scene::SharedPtr& pScene, uint32_t lightID, pugi::xml_node& parent)
+    void addPunctualLight(const Scene* pScene, uint32_t lightID, pugi::xml_node& parent)
     {
         const auto pLight = pScene->getLight(lightID);
 
@@ -883,8 +883,9 @@ namespace Falcor
         }
     }
 
-    void addPerspectiveCamera(const Scene::SharedConstPtr& pScene, const Camera* pCamera, pugi::xml_node& parent,
-                              float viewportWidth, float viewportHeight)
+    void addPerspectiveCamera(const Scene* pScene, const Camera* pCamera, pugi::xml_node& parent,
+                              float viewportWidth, float viewportHeight,
+                              int32_t sampleCount)
     {
         pugi::xml_node sensor = addNodeWithType(parent, "sensor");
         setNodeAttr(sensor, "type", "perspective");
@@ -913,7 +914,7 @@ namespace Falcor
 
         //addLiteral(jsonCamera, allocator, SceneKeys::kCamAspectRatio, pCamera->getAspectRatio());
 
-        addSampler(sensor);
+        addSampler(sensor, sampleCount);
         addFilm(sensor, (int32_t)viewportWidth, (int32_t)viewportHeight);
     }
 
@@ -926,8 +927,10 @@ namespace Falcor
 
         addComments(mSceneNode, "Default Camera");
 
-        const Camera* pCamera = mViewerInfo.mpCamera ? mViewerInfo.mpCamera : mpScene->getActiveCamera().get();
-        addPerspectiveCamera(mpScene, pCamera, mSceneNode, mViewerInfo.mViewportWidth, mViewerInfo.mViewportHeight);
+        const Camera* pCamera = mMitsubaCfg.mpCamera ? mMitsubaCfg.mpCamera : mpScene->getActiveCamera().get();
+        addPerspectiveCamera(mpScene, pCamera, mSceneNode,
+                             mMitsubaCfg.mViewportWidth, mMitsubaCfg.mViewportHeight,
+                             mMitsubaCfg.sampleCount);
     }
 
     void SceneMitsubaExporter::writePaths()

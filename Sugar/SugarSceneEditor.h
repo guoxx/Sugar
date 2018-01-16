@@ -90,18 +90,12 @@ namespace Falcor
         */
         void onResizeSwapChain();
 
-        void saveSceneToMitsuba();
-        void compareSceneWithMitsuba(Texture* pFalcorCapture, Camera* pActivaCamera, bool mitsubaRender);
-
     private:
 
         SugarSceneEditor(const Scene::SharedPtr& pScene, Model::LoadFlags modelLoadFlags);
         Scene::SharedPtr mpScene;
 
         bool mSceneDirty = false;
-
-        std::string mLastMitsubaSceneFile;
-        std::string mLastMitsubaRenderedFile;
 
         void setSceneAsDirty();
 

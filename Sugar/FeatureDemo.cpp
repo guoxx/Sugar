@@ -278,7 +278,7 @@ void FeatureDemo::renderSkyBox()
 void FeatureDemo::beginFrame()
 {
     mpRenderContext->pushGraphicsState(mpState);
-    mpRenderContext->clearFbo(mpMainFbo.get(), glm::vec4(0.7f, 0.7f, 0.7f, 1.0f), 1, 0, FboAttachmentType::All);
+    mpRenderContext->clearFbo(mpMainFbo.get(), glm::vec4(0.0f, 0.0f, 0.0f, 1.0f), 1, 0, FboAttachmentType::All);
     mpRenderContext->clearFbo(mpPostProcessFbo.get(), glm::vec4(), 1, 0, FboAttachmentType::Color);
 
     if (mAAMode == AAMode::TAA)

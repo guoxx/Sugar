@@ -39,6 +39,8 @@ __import Helpers;
 Documentation
 *******************************************************************/
 
+#define WITHOUT_CORRECT_HORIZON 1
+
 // Possible user-defined global macros to configure shading 
 //#define _MS_DISABLE_ALPHA_TEST    ///< Disables alpha test (handy for early-z etc.)
 //#define _MS_DISABLE_TEXTURES      ///< Disables material texture fetches, all materials are solid color
@@ -206,18 +208,47 @@ float4 _fn evalDiffuseLayer(MaterialLayerDesc desc, MaterialLayerValues data, Sh
 {
     if (lAttr.type == LightSphere)
     {
-        // Patch to Sphere frontal equation ( Quilez version )
-        float sqrLightRadius = lAttr.radius * lAttr.radius;
-
         float3 posToLight = lAttr.P - shAttr.P;
         float sqrDist = dot(posToLight, posToLight);
 
+#if WITHOUT_CORRECT_HORIZON // Analytical solution above horizon
+
+        // Patch to Sphere frontal equation ( Quilez version )
+        float sqrLightRadius = lAttr.radius * lAttr.radius;
+
         // Do not allow object to penetrate the light ( max )
         // Form factor equation include a (1 / PI ) that need to be cancel
-        // thus the " PI *"
+        // thus the "PI *"
         float illuminance = M_PIf * ( sqrLightRadius / ( max(sqrLightRadius , sqrDist))) * saturate(dot(shAttr.N, lAttr.L));
 
+#else
+
+         // Tilted patch to sphere equation
+        float Beta = acos(dot(shAttr.N, lAttr.L));
+        float H = sqrt(sqrDist);
+        float h = H / lAttr.radius;
+
+        float illuminance = 0;
+        if (h * cos(Beta) > 1)
+        {
+            illuminance = cos(Beta) / (h * h);
+        }
+        else
+        {
+            float x = sqrt(h * h - 1);
+            float y = -x * (1 / tan(Beta));
+
+            illuminance = (1 / (M_PIf * h * h)) *
+                          (cos(Beta) * acos(y) - x * sin(Beta) * sqrt(1 - y * y)) +
+                          (1 / M_PIf) * atan(sin(Beta) * sqrt(1 - y * y) / x);
+        }
+        illuminance *= M_PIf;
+
+#endif
+
         float3 value = illuminance * lAttr.lightIntensity;
+        value *= M_1_PIf;
+
         float weight = 0;
         float4 albedo = data.albedo;
         result.roughness = 1;

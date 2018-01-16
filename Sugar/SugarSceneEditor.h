@@ -91,7 +91,7 @@ namespace Falcor
         void onResizeSwapChain();
 
         void saveSceneToMitsuba();
-        void compareSceneWithMitsuba(Texture* pFalcorCapture, Camera* pActivaCamera, bool forceDirty);
+        void compareSceneWithMitsuba(Texture* pFalcorCapture, Camera* pActivaCamera, bool mitsubaRender);
 
     private:
 
@@ -100,7 +100,6 @@ namespace Falcor
 
         bool mSceneDirty = false;
 
-        bool mMitsubaSceneDirty = true;
         std::string mLastMitsubaSceneFile;
         std::string mLastMitsubaRenderedFile;
 

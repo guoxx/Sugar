@@ -40,4 +40,4 @@ Model::SharedPtr CreateModelTetrahedron(float size, bool rhcoords = true);
 Model::SharedPtr CreateModelOctahedron(float size, bool rhcoords = true);
 Model::SharedPtr CreateModelDodecahedron(float size, bool rhcoords = true);
 Model::SharedPtr CreateModelIcosahedron(float size, bool rhcoords = true);
-Model::SharedPtr CreateModelTeapot(float size, size_t tessellation, bool rhcoords = true);
+Model::SharedPtr CreateModelTeapot(float size, size_t tessellation = 32, bool rhcoords = true);

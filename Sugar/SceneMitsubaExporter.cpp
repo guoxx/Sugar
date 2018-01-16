@@ -637,6 +637,25 @@ namespace Falcor
                 overwriteMaterialByName(mixturebsdf);
             }
         }
+
+        // emissive layer
+        for (uint32_t layerIdx = 0; layerIdx < pMat->getNumLayers(); ++layerIdx)
+        {
+            const Material::Layer layer = pMat->getLayer(layerIdx);
+            switch (layer.type)
+            {
+            case Material::Layer::Type::Emissive:
+            {
+                pugi::xml_node emitter = addNodeWithType(parent, "emitter");
+                setNodeAttr(emitter, "type", "area");
+                setNodeAttr(emitter, "name", pMat->getName());
+                addSpectrum(emitter, "radiance", layer.albedo);
+                break;
+            }
+            default:
+                break;
+            }
+        }
     }
 
     void exportMeshDataToOBJ(const Model* pModel, std::string& filename)
@@ -710,9 +729,10 @@ namespace Falcor
                 uint32_t* pData = (uint32_t*)pIB->map(Buffer::MapType::Read);
                 for (uint32_t triangleIdx = 0; triangleIdx < pMesh->getPrimitiveCount(); ++triangleIdx)
                 {
-                    fs << "f " << (pData[3 * triangleIdx] + 1) << " "
+                    fs << "f "
+                        << (pData[3 * triangleIdx + 2] + 1) << " "
                         << (pData[3 * triangleIdx + 1] + 1) << " "
-                        << (pData[3 * triangleIdx + 2] + 1) << std::endl;
+                        << (pData[3 * triangleIdx + 0] + 1) << std::endl;
                 }
 
                 pIB->unmap();

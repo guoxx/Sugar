@@ -214,8 +214,8 @@ private:
     bool mPerMaterialShader = false;
     bool mEnableDepthPass = true;
 
-    bool mMitsubaDirty = false;
     bool mCompareWithMitsuba = false;
+    bool mMitsubaForceRender = false;
 
     bool mCameraLiveViewMode = false;
     SugarSceneEditor::UniquePtr mpEditor = nullptr;

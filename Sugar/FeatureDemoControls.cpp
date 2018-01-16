@@ -145,6 +145,12 @@ void FeatureDemo::onGuiRender()
         if (mpGui->addButton("Compare With Mitsuba"))
         {
             mCompareWithMitsuba = true;
+            mMitsubaForceRender = false;
+        }
+        if (mpGui->addButton("Compare With Mitsuba(Re-render)", true))
+        {
+            mCompareWithMitsuba = true;
+            mMitsubaForceRender = true;
         }
 
         mpEditor->renderGui(mpGui.get());

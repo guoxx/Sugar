@@ -454,7 +454,7 @@ namespace Falcor
 		}
 	}
 
-    void SugarSceneEditor::compareSceneWithMitsuba(Texture* pFalcorCapture, Camera* pActivaCamera, bool forceDirty)
+    void SugarSceneEditor::compareSceneWithMitsuba(Texture* pFalcorCapture, Camera* pActivaCamera, bool mitsubaRender)
     {
         const std::string executableName = getExecutableName();
         const std::string outputDirectory = getTempDirectory();
@@ -473,7 +473,8 @@ namespace Falcor
         // save screenshot
         pFalcorCapture->captureToFile(0, 0, falcorRenderedFile, Bitmap::FileFormat::ExrFile);
 
-        if (mMitsubaSceneDirty || forceDirty)
+        const bool isMtsFilesExist = doesFileExist(mLastMitsubaSceneFile) && doesFileExist(mLastMitsubaRenderedFile);
+        if (mitsubaRender || !isMtsFilesExist)
         {
             // export mitsuba scene file
             SceneMitsubaExporter::ViewerInfo info;
@@ -487,7 +488,6 @@ namespace Falcor
             opts += " \"" + mitsubaSceneFile + "\"";
             Falcor::createProcess("mitsuba", opts, true);
 
-            mMitsubaSceneDirty = false;
             mLastMitsubaSceneFile = mitsubaSceneFile;
             mLastMitsubaRenderedFile = mitsubaRenderedFile;
         }
@@ -560,7 +560,7 @@ namespace Falcor
 
     void SugarSceneEditor::update(double currentTime)
     {
-        mMitsubaSceneDirty |= mpEditorSceneRenderer->update(currentTime);
+        mpEditorSceneRenderer->update(currentTime);
     }
 
     void SugarSceneEditor::initializeEditorRendering()
@@ -1020,8 +1020,6 @@ namespace Falcor
 
     void SugarSceneEditor::onResizeSwapChain()
     {
-        mMitsubaSceneDirty = true;
-
         if (mpScenePicker)
         {
             auto backBufferFBO = gpDevice->getSwapChainFbo();
@@ -1055,7 +1053,6 @@ namespace Falcor
     void SugarSceneEditor::setSceneAsDirty()
     {
         mSceneDirty = true;
-        mMitsubaSceneDirty = true;        
     }
 
     void SugarSceneEditor::renderModelElements(Gui* pGui)

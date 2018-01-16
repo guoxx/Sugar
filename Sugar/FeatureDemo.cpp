@@ -466,9 +466,8 @@ void FeatureDemo::renderingComparisonWithMitsuba()
     if (mCompareWithMitsuba)
     {
         mCompareWithMitsuba = false;
-        mMitsubaDirty = false;
 
-        mpEditor->compareSceneWithMitsuba(mpResolveFbo->getColorTexture(0).get(), getActiveCamera(), mMitsubaDirty);
+        mpEditor->compareSceneWithMitsuba(mpResolveFbo->getColorTexture(0).get(), getActiveCamera(), mMitsubaForceRender);
         //mpEditor->compareSceneWithMitsuba(gpDevice->getSwapChainFbo()->getColorTexture(0).get());
     }
 }
@@ -495,7 +494,7 @@ void FeatureDemo::onFrameRender()
         {
             PROFILE(updateScene);
             mpEditor->update(mCurrentTime);
-            mMitsubaDirty |= mpSceneRenderer->update(mCurrentTime);
+            mpSceneRenderer->update(mCurrentTime);
         }
 
         depthPass();

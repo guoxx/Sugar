@@ -27,7 +27,7 @@
 ***************************************************************************/
 __import DefaultVS;
 __import ShaderCommon;
-__import Shading;
+__import SugarShading;
 __import Helpers;
 
 void main(float2 texC : TEXCRD, float3 posW : POSITION)

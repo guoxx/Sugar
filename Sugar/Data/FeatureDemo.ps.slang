@@ -27,7 +27,7 @@
 ***************************************************************************/
 #include "FeatureDemoCommon.hlsli"
 
-__import BSDFs;
+__import SugarBSDFs;
 __import SugarShading;
 __import Helpers;
 

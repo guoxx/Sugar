@@ -134,11 +134,11 @@ namespace Falcor
     {
         mData.radius = mRadius;
 
- 		// Get the surface area of the geometry mesh
- 		mData.surfaceArea = mSurfaceArea;
- 
- 		// Fetch the mesh instance transformation
- 		mData.transMat = mpModelInstance->getTransformMatrix();
+        // Get the surface area of the geometry mesh
+        mData.surfaceArea = mSurfaceArea;
+
+        // Fetch the mesh instance transformation
+        mData.transMat = mpModelInstance->getTransformMatrix();
     }
 
     void SphereAreaLight::unloadGPUData()

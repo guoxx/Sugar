@@ -94,7 +94,7 @@ struct ShadingOutput
 
 __import Cameras;
 __import SugarLights;
-__import BSDFs;
+__import SugarBSDFs;
 
 /*******************************************************************
 Material shading building blocks
@@ -372,9 +372,9 @@ float4 _fn evalSpecularLayer(MaterialLayerDesc desc, MaterialLayerValues data, S
     float HoE = dot(hW, shAttr.E);
     float IoR = data.extraParam.x;
     float kappa = data.extraParam.y;
-    float F_term = (desc.type == MatConductor) ? conductorFresnel(HoE, IoR, kappa) : 1.f - dielectricFresnel(HoE, IoR);
+    float F_term = (desc.type == MatConductor) ? conductorFresnel(HoE, IoR, kappa) : dielectricFresnel(HoE, IoR);
     value *= F_term;
-    float weight = F_term;
+    float weight = (1.0f - F_term) / (IoR * IoR);
 
     result.specularIllumination += value;
 
@@ -399,7 +399,7 @@ float3 _fn blendLayer(float4 albedo, float4 layerOut, uint blendType, float3 cur
     float3 result;
     if(blendType != BlendAdd)
     {
-        result = lerp(currentValue, scaledLayerOut, weight);
+        result = scaledLayerOut + currentValue * weight;
     }
     else
     {

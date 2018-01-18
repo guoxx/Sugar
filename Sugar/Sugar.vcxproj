@@ -40,6 +40,7 @@
       <FileType>Document</FileType>
     </None>
     <None Include="Data\FeatureDemoCommon.hlsli" />
+    <None Include="Data\SugarBSDFs.slang" />
     <None Include="Data\SugarLights.slang" />
     <None Include="Data\SugarShading.slang" />
     <None Include="Utils\Geometry\Private\TeapotData.inc" />

@@ -800,7 +800,7 @@ namespace Falcor
         pugi::xml_node pointLight = addNodeWithType(parent, "emitter");
         setNodeAttr(pointLight, "type", "spot");
 
-        addComments(pointLight, pLight->getName().c_str());
+        addComments(pointLight, pLight->getName());
 
         // TODO
         assert(false);
@@ -819,7 +819,7 @@ namespace Falcor
         pugi::xml_node pointLight = addNodeWithType(parent, "emitter");
         setNodeAttr(pointLight, "type", "point");
 
-        addComments(pointLight, pLight->getName().c_str());
+        addComments(pointLight, pLight->getName());
         addSpectrum(pointLight, "intensity", pLight->getIntensity());
         addPoint(pointLight, "position", pLight->getWorldPosition());
     }
@@ -829,7 +829,7 @@ namespace Falcor
         pugi::xml_node pointLight = addNodeWithType(parent, "emitter");
         setNodeAttr(pointLight, "type", "directional");
 
-        addComments(pointLight, pLight->getName().c_str());
+        addComments(pointLight, pLight->getName());
         addSpectrum(pointLight, "irradiance", pLight->getIntensity());
         addVector(pointLight, "direction", pLight->getWorldDirection());
     }
@@ -890,7 +890,7 @@ namespace Falcor
         pugi::xml_node sensor = addNodeWithType(parent, "sensor");
         setNodeAttr(sensor, "type", "perspective");
 
-        addComments(sensor, pCamera->getName().c_str());
+        addComments(sensor, pCamera->getName());
 
         addTransform(sensor, "toWorld", pCamera->getPosition(), pCamera->getTarget(), pCamera->getUpVector());
 
@@ -941,7 +941,7 @@ namespace Falcor
         }
 
         // TODO
-        assert(false);
+        logWarning("Write path information is not support for mitsuba exporter");
     }
 
     void SceneMitsubaExporter::writeUserDefinedSection()
@@ -952,127 +952,8 @@ namespace Falcor
         }
 
         // TODO
-        assert(false);
+        logWarning("Write user defined scene information is not support for mitsuba exporter");
     }
-
-    static const char* getMaterialLayerType(uint32_t type)
-    {
-        switch (type)
-        {
-        case MatLambert:
-            return SceneKeys::kMaterialLambert;
-        case MatConductor:
-            return SceneKeys::kMaterialConductor;
-        case MatDielectric:
-            return SceneKeys::kMaterialDielectric;
-        case MatEmissive:
-            return SceneKeys::kMaterialEmissive;
-        case MatUser:
-            return SceneKeys::kMaterialUser;
-        default:
-            should_not_get_here();
-            return "";
-        }
-    }
-
-    static const char* getMaterialLayerBlending(uint32_t blend)
-    {
-        switch (blend)
-        {
-        case BlendFresnel:
-            return SceneKeys::kMaterialBlendFresnel;
-        case BlendConstant:
-            return SceneKeys::kMaterialBlendConstant;
-        case BlendAdd:
-            return SceneKeys::kMaterialBlendAdd;
-        default:
-            should_not_get_here();
-            return "";
-        }
-    }
-
-    //void createMaterialTextureValue(const Texture::SharedPtr& pTexture, rapidjson::Value& jsonVal, rapidjson::Document::AllocatorType& allocator)
-    //{
-    //    if (pTexture)
-    //    {
-    //        std::string filename = stripDataDirectories(pTexture->getAbsoluteSourceFilename());
-    //        addString(jsonVal, allocator, SceneKeys::kMaterialTexture, filename);
-    //    }
-    //}
-
-    //void createMaterialLayer(const Material::Layer& layer, rapidjson::Value& jsonVal, rapidjson::Document::AllocatorType& allocator)
-    //{
-    //    jsonVal.SetObject();
-
-    //    if (layer.pTexture != nullptr)
-    //    {
-    //        addString(jsonVal, allocator, SceneKeys::kMaterialTexture, stripDataDirectories(layer.pTexture->getAbsoluteSourceFilename()));
-    //    }
-
-    //    addString(jsonVal, allocator, SceneKeys::kMaterialLayerType, getMaterialLayerType((uint32_t)layer.type));
-    //    addString(jsonVal, allocator, SceneKeys::kMaterialNDF, getMaterialLayerNDF((uint32_t)layer.ndf));
-    //    addString(jsonVal, allocator, SceneKeys::kMaterialBlend, getMaterialLayerBlending((uint32_t)layer.blend));
-
-    //    addVector(jsonVal, allocator, SceneKeys::kMaterialAlbedo, layer.albedo);
-    //    addVector(jsonVal, allocator, SceneKeys::kMaterialRoughness, layer.roughness);
-    //    addVector(jsonVal, allocator, SceneKeys::kMaterialExtraParam, layer.extraParam);
-    //}
-
-    //void createMaterialValue(const Material* pMaterial, rapidjson::Value& jsonMaterial, rapidjson::Document::AllocatorType& allocator)
-    //{
-    //    // Name
-    //    addString(jsonMaterial, allocator, SceneKeys::kName, pMaterial->getName());
-
-    //    // ID
-    //    addLiteral(jsonMaterial, allocator, SceneKeys::kID, pMaterial->getId());
-
-    //    // Double-Sided
-    //    addBool(jsonMaterial, allocator, SceneKeys::kMaterialDoubleSided, pMaterial->isDoubleSided());
-
-    //    // Alpha layer
-    //    auto pAlphaMap = pMaterial->getAlphaMap();
-    //    if (pAlphaMap != nullptr)
-    //    {
-    //        addString(jsonMaterial, allocator, SceneKeys::kMaterialAlpha, stripDataDirectories(pAlphaMap->getAbsoluteSourceFilename()));
-    //    }
-
-    //    // Normal
-    //    auto pNormalMap = pMaterial->getNormalMap();
-    //    if (pNormalMap != nullptr)
-    //    {
-    //        addString(jsonMaterial, allocator, SceneKeys::kMaterialNormal, stripDataDirectories(pNormalMap->getAbsoluteSourceFilename()));
-    //    }
-
-    //    // Height
-    //    auto pHeightMap = pMaterial->getHeightMap();
-    //    if (pHeightMap != nullptr)
-    //    {
-    //        addString(jsonMaterial, allocator, SceneKeys::kMaterialHeight, stripDataDirectories(pHeightMap->getAbsoluteSourceFilename()));
-    //    }
-
-    //    // Ambient Occlusion
-    //    auto pAOMap = pMaterial->getAmbientOcclusionMap();
-    //    if (pAOMap != nullptr)
-    //    {
-    //        addString(jsonMaterial, allocator, SceneKeys::kMaterialAO, stripDataDirectories(pAOMap->getAbsoluteSourceFilename()));
-    //    }
-
-    //    // Loop over the layers
-    //    if (pMaterial->getNumLayers() > 0)
-    //    {
-    //        rapidjson::Value jsonLayerArray(rapidjson::kArrayType);
-    //        for (uint32_t i = 0; i < pMaterial->getNumLayers(); i++)
-    //        {
-    //            Material::Layer layer = pMaterial->getLayer(i);
-
-    //            rapidjson::Value jsonLayer;
-    //            createMaterialLayer(layer, jsonLayer, allocator);
-    //            jsonLayerArray.PushBack(jsonLayer, allocator);
-    //        }
-
-    //        addJsonValue(jsonMaterial, allocator, SceneKeys::kMaterialLayers, jsonLayerArray);
-    //    }
-    //}
 
     void SceneMitsubaExporter::writeMaterials()
     {
@@ -1080,18 +961,5 @@ namespace Falcor
         {
             return;
         }
-
-        //auto& allocator = mJDoc.GetAllocator();
-        //rapidjson::Value jsonMaterialArray(rapidjson::kArrayType);
-
-        //for (uint32_t i = 0; i < mpScene->getMaterialCount(); i++)
-        //{
-        //    const auto pMaterial = mpScene->getMaterial(i);
-        //    rapidjson::Value jsonMaterial(rapidjson::kObjectType);
-        //    createMaterialValue(pMaterial.get(), jsonMaterial, allocator);
-        //    jsonMaterialArray.PushBack(jsonMaterial, allocator);
-        //}
-
-        //addJsonValue(mJDoc, allocator, SceneKeys::kMaterials, jsonMaterialArray);
     }
 }

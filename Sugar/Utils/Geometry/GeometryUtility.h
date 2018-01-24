@@ -30,6 +30,10 @@
 
 using namespace Falcor;
 
+using PolarCoordinate = glm::float2;
+using PolarCoordinateCollection = std::vector<PolarCoordinate>;
+
+
 Model::SharedPtr CreateModelBox(const glm::vec3& size, bool rhcoords = true, bool invertn = false);
 Model::SharedPtr CreateModelSphere(float diameter, size_t tessellation = 32, bool rhcoords = true, bool invertn = false);
 Model::SharedPtr CreateModelGeoSphere(float diameter, size_t tessellation = 32, bool rhcoords = true);
@@ -41,3 +45,4 @@ Model::SharedPtr CreateModelOctahedron(float size, bool rhcoords = true);
 Model::SharedPtr CreateModelDodecahedron(float size, bool rhcoords = true);
 Model::SharedPtr CreateModelIcosahedron(float size, bool rhcoords = true);
 Model::SharedPtr CreateModelTeapot(float size, size_t tessellation = 32, bool rhcoords = true);
+Model::SharedPtr CreateModelPolygonalPlane(const PolarCoordinateCollection pts, const glm::mat4x4 transform, bool rhcoords = true);

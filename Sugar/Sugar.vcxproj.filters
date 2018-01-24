@@ -65,7 +65,7 @@
     <Filter Include="Utils\Geometry\Private">
       <UniqueIdentifier>{43bc3504-be9d-4d30-88e1-a8af93175b9a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Data\Sugar">
+    <Filter Include="Data\ShadingUtils">
       <UniqueIdentifier>{6f88b80d-04e8-4802-9f60-30517f862869}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -92,13 +92,13 @@
       <Filter>Utils\Geometry\Private</Filter>
     </None>
     <None Include="Data\SugarBSDFs.slang">
-      <Filter>Data\Sugar</Filter>
+      <Filter>Data\ShadingUtils</Filter>
     </None>
     <None Include="Data\SugarLights.slang">
-      <Filter>Data\Sugar</Filter>
+      <Filter>Data\ShadingUtils</Filter>
     </None>
     <None Include="Data\SugarShading.slang">
-      <Filter>Data\Sugar</Filter>
+      <Filter>Data\ShadingUtils</Filter>
     </None>
   </ItemGroup>
 </Project>

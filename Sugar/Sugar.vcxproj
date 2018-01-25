@@ -16,6 +16,7 @@
     <ClCompile Include="FeatureDemoControls.cpp" />
     <ClCompile Include="FeatureDemoSceneRenderer.cpp" />
     <ClCompile Include="Graphics\AreaLight.cpp" />
+    <ClCompile Include="Graphics\PolygonalAreaLight.cpp" />
     <ClCompile Include="SceneMitsubaExporter.cpp" />
     <ClCompile Include="SugarSceneEditor.cpp" />
     <ClCompile Include="Utils\Geometry\GeometryUtility.cpp" />
@@ -27,6 +28,7 @@
     <ClInclude Include="FeatureDemo.h" />
     <ClInclude Include="FeatureDemoSceneRenderer.h" />
     <ClInclude Include="Graphics\AreaLight.h" />
+    <ClInclude Include="Graphics\PolygonalAreaLight.h" />
     <ClInclude Include="SceneMitsubaExporter.h" />
     <ClInclude Include="SugarSceneEditor.h" />
     <ClInclude Include="Utils\Geometry\GeometryUtility.h" />

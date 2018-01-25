@@ -18,6 +18,9 @@
     <ClCompile Include="Utils\Geometry\GeometryUtility.cpp">
       <Filter>Utils\Geometry</Filter>
     </ClCompile>
+    <ClCompile Include="Graphics\PolygonalAreaLight.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FeatureDemo.h" />
@@ -41,6 +44,9 @@
     </ClInclude>
     <ClInclude Include="Utils\Geometry\GeometryUtility.h">
       <Filter>Utils\Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\PolygonalAreaLight.h">
+      <Filter>Graphics</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

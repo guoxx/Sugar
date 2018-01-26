@@ -35,31 +35,15 @@ namespace DirectX
 // Create a polygonal plane lay on X/Z plane
 static void ComputePolygonalPlane(VertexCollection& vertices,
                                   IndexCollection& indices,
-                                  const PolarCoordinateCollection& pts,
+                                  const PolarCoordinateCollection& points,
                                   const glm::mat4& transform,
                                   bool rhcoords)
 {
     vertices.clear();
     indices.clear();
 
-    const int numOfTriangles = (int)pts.size() - 1;
-
-    if (numOfTriangles < 1)
-        throw std::out_of_range("polygonal plane need at least 2 control points");
-
-    auto clamp2Pi = [](float theta)
-    {
-        while (theta < 0) { theta = theta + XM_2PI; }
-        while (theta >= XM_2PI) { theta = theta - XM_2PI; }
-        return theta;
-    };
-
-    PolarCoordinateCollection controlPoints = pts;
-    std::sort(controlPoints.begin(), controlPoints.end(),
-        [clamp2Pi](const PolarCoordinate& a, const PolarCoordinate& b)
-        {
-            return clamp2Pi(a.y) > clamp2Pi(b.y);
-        });
+    if (points.size() < 3)
+        throw std::out_of_range("polygonal plane need at least 3 control points");
 
     // Y-axis as normal
     glm::vec4 planeNormal{0, 1.0f, 0, 0};
@@ -70,20 +54,10 @@ static void ComputePolygonalPlane(VertexCollection& vertices,
     // TODO: UV is not supported
     const XMFLOAT2 texCoordDX{0.0f, 0.0f};
 
-    // push origin
-    {
-        const glm::vec4 origin = transform * glm::vec4{0, 0, 0, 1.0f};
-        const DirectX::XMFLOAT3 originDX{origin.x, origin.y, origin.z};
-
-        vertices.push_back(VertexPositionNormalTexture{
-            originDX, planeNormalDX, texCoordDX
-        });
-    }
-
-    for (const auto pt : controlPoints)
+    for (const auto pt : points)
     {
         const float r = pt.x;
-        const float theta = pt.y;
+        const float theta = glm::radians(pt.y);
 
         // points lay on X/Z plane
         glm::vec4 position = {r * std::cos(theta), 0, r * std::sin(theta), 1.0f};
@@ -93,11 +67,24 @@ static void ComputePolygonalPlane(VertexCollection& vertices,
         vertices.push_back(VertexPositionNormalTexture{positionDX, planeNormalDX, texCoordDX});
     }
 
-    for (int face = 0; face < numOfTriangles; ++face)
+    for (int triIdx = 0; triIdx < (int)points.size() - 2; ++triIdx)
     {
-        indices.push_back(0);
-        indices.push_back(face + 1);
-        indices.push_back(face + 2);
+        const int a = triIdx;
+        const int b = triIdx + 1;
+        const int c = triIdx + 2;
+
+        if ((triIdx & 0x01) == 00)
+        {
+            indices.push_back(a);
+            indices.push_back(b);
+            indices.push_back(c);
+        }
+        else
+        {
+            indices.push_back(b);
+            indices.push_back(a);
+            indices.push_back(c);            
+        }
     }
 }
 }

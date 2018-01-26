@@ -40,6 +40,7 @@
 #include "Data/HostDeviceData.h"
 #include "Utils/StringUtils.h"
 #include "Graphics/AreaLight.h"
+#include "Graphics/PolygonalAreaLight.h"
 
 namespace Falcor
 {
@@ -428,6 +429,32 @@ namespace Falcor
             }
         }
 	}
+
+    void SugarSceneEditor::addPolygonalAreaLight(Gui* pGui)
+    {
+        if (mpPathEditor == nullptr)
+        {
+            if (pGui->addButton("Add Polygonal Light"))
+            {
+                if (mpScene->getLightCount() >= MAX_LIGHT_SOURCES)
+                {
+                    msgBox("There cannot be more than 16 lights at a time in a scene!");
+                    return;
+                }
+
+                auto pNewLight = PolygonalAreaLight::create();
+                mpScene->addLight(pNewLight);
+				pNewLight->addToScene(mpScene);
+
+                // Name
+                std::string name = getUniqueNumberedName("PolygonalAreaLight", 0, mLightNames);
+                pNewLight->setName(name);
+                mLightNames.insert(name);
+
+                setSceneAsDirty();
+            }
+        }
+    }
 
 	void SugarSceneEditor::saveScene()
     {
@@ -1103,6 +1130,7 @@ namespace Falcor
             addPointLight(pGui);
             addDirectionalLight(pGui);
 			addSphereAreaLight(pGui);
+            addPolygonalAreaLight(pGui);
 
             for (uint32_t i = 0; i < mpScene->getLightCount(); i++)
             {

@@ -41,7 +41,10 @@ namespace
     {
         Falcor::BasicMaterial basicMat;
         basicMat.emissiveColor = emissiveColor;
-        return basicMat.convertToMaterial();
+
+        auto pMat = basicMat.convertToMaterial();
+        pMat->setDoubleSided(true);
+        return pMat;
     }
 
     std::string getEmissiveModelName(const std::string& lightName)
@@ -68,10 +71,10 @@ namespace Falcor
 
         // a quad
         const float r = float(M_SQRT2) / 2.0f;
-        mpVertices.push_back(PolarCoordinate{r, M_PI_4});
-        mpVertices.push_back(PolarCoordinate{r, M_PI_4 + M_PI_2});
-        mpVertices.push_back(PolarCoordinate{r, M_PI_4 + M_PI_2 * 2});
-        mpVertices.push_back(PolarCoordinate{r, M_PI_4 + M_PI_2 * 3});
+        mpVertices.push_back(PolarCoordinate{r, glm::degrees(M_PI_4 + M_PI_2)});
+        mpVertices.push_back(PolarCoordinate{r, glm::degrees(M_PI_4)});
+        mpVertices.push_back(PolarCoordinate{r, glm::degrees(M_PI_4 + M_PI_2 * 2)});
+        mpVertices.push_back(PolarCoordinate{r, glm::degrees(M_PI_4 + M_PI_2 * 3)});
 
         createGeometry();
         updateSurfaceArea();
@@ -92,36 +95,80 @@ namespace Falcor
     {
         if(!group || pGui->beginGroup(group))
         {
+            Light::renderUI(pGui);
+
             if (mpModelInstance)
             {
+                vec3 t = mpModelInstance->getTranslation();
+                if (pGui->addFloat3Var("Translation", t, -FLT_MAX, FLT_MAX))
                 {
-                    vec3 t = mpModelInstance->getTranslation();
-                    if (pGui->addFloat3Var("Translation", t, -FLT_MAX, FLT_MAX))
-                    {
-                        mpModelInstance->setTranslation(t, true);
-                    }
+                    mpModelInstance->setTranslation(t, true);
                 }
 
+                if (pGui->addFloat3Var("Rotation", mRotationAngles, -360, 360))
                 {
-                    vec3 r = mpModelInstance->getRotation();
-                    r = degrees(r);
-                    if (pGui->addFloat3Var("Rotation", r, -360, 360))
-                    {
-                        r = radians(r);
-                        mpModelInstance->setRotation(r);
-                    }
+                    mpModelInstance->setRotation(radians(mRotationAngles));
                 }
 
+                vec3 s = mpModelInstance->getScaling();
+                if (pGui->addFloat3Var("Scaling", s, 0, FLT_MAX))
                 {
-                    vec3 s = mpModelInstance->getScaling();
-                    if (pGui->addFloat3Var("Scaling", s, 0, FLT_MAX))
+                    mpModelInstance->setScaling(s);
+                }
+
+                if (pGui->beginGroup("Vertices"))
+                {
+                    bool rebuildGeometry = false;
+
+                    auto addItem = mpVertices.end();
+                    auto deleteItem = mpVertices.end();
+
+                    for (auto iter = mpVertices.begin(); iter != mpVertices.end(); ++iter)
                     {
-                        mpModelInstance->setScaling(s);
+                        std::string label = std::string("V") + std::to_string(std::distance(mpVertices.begin(), iter));
+                        if (pGui->addFloat2Var(label.c_str(), *iter, 0.0f, FLT_MAX))
+                        {
+                            rebuildGeometry = true;
+                        }
+
+                        if (pGui->addButton((std::string("Remove ") + label).c_str(), false))
+                        {
+                            deleteItem = iter;
+                        }
+
+                        if (pGui->addButton((std::string("Insert Before ") + label).c_str(), true))
+                        {
+                            addItem = iter;
+                        }
+                    }
+
+                    if (addItem != mpVertices.end())
+                    {
+                        mpVertices.emplace(addItem, PolarCoordinate{1.0f, 0.0f});
+                        rebuildGeometry = true;
+                    }
+                    else if (deleteItem != mpVertices.end())
+                    {
+                        mpVertices.erase(deleteItem);
+                        rebuildGeometry = true;
+                    }
+
+                    if (pGui->addButton("Add Vertices"))
+                    {
+                        mpVertices.push_back(PolarCoordinate{1.0f, 0.0f});
+                        rebuildGeometry = true;
+                    }
+
+                    pGui->endGroup();
+
+                    if (rebuildGeometry)
+                    {
+                        resetGeometry();
+                        createGeometry();
+                        updateSurfaceArea();
                     }
                 }
             }
-
-            Light::renderUI(pGui);
 
             if (group)
             {
@@ -234,7 +281,6 @@ namespace Falcor
         ((Mesh::SharedPtr&)pModel->getMesh(0))->setMaterial(mpEmissiveMat);
 
         mpModelInstance = Scene::ModelInstance::create(pModel, glm::vec3(), glm::vec3(), glm::vec3(1), getEmissiveModelName(mName));
-        setWorldPositionInternal(mData.worldPos);
 
 		Scene::SharedPtr pScene = mpScene.lock();
         if (pScene)

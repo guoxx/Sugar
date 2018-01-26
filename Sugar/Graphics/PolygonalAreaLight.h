@@ -108,8 +108,6 @@ namespace Falcor
         virtual void setColorFromUI(const glm::vec3& uiColor) override;
         virtual void setIntensityFromUI(float intensity) override;
 
-
-        void setWorldPositionInternal(const glm::vec3& pos);
         void resetGeometry();
         void createGeometry();
         void updateSurfaceArea();
@@ -118,6 +116,7 @@ namespace Falcor
         Material::SharedPtr mpEmissiveMat;
         Scene::ModelInstance::SharedPtr mpModelInstance;
         PolarCoordinateCollection mpVertices;
+        glm::vec3 mRotationAngles = glm::vec3(0.0f);
 
         float mSurfaceArea = 0.0f;
 

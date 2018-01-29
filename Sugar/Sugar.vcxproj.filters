@@ -106,5 +106,8 @@
     <None Include="Data\SugarShading.slang">
       <Filter>Data\ShadingUtils</Filter>
     </None>
+    <None Include="Data\LTC.slang">
+      <Filter>Data\ShadingUtils</Filter>
+    </None>
   </ItemGroup>
 </Project>

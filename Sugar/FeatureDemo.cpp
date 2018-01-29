@@ -716,8 +716,8 @@ int main(int argc, char** argv)
     SampleConfig config;
     config.windowDesc.title = "Sugar Editor";
     config.windowDesc.resizableWindow = false;
-    config.windowDesc.width = 1280;
-    config.windowDesc.height = 720;
+    config.windowDesc.width = 960;
+    config.windowDesc.height = 540;
     config.deviceDesc.enableVsync = true;
 #ifdef _WIN32
     sample.run(config);

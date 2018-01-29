@@ -42,6 +42,7 @@
       <FileType>Document</FileType>
     </None>
     <None Include="Data\FeatureDemoCommon.hlsli" />
+    <None Include="Data\LTC.slang" />
     <None Include="Data\SugarBSDFs.slang" />
     <None Include="Data\SugarLights.slang" />
     <None Include="Data\SugarShading.slang" />

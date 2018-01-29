@@ -730,9 +730,9 @@ namespace Falcor
                 for (uint32_t triangleIdx = 0; triangleIdx < pMesh->getPrimitiveCount(); ++triangleIdx)
                 {
                     fs << "f "
-                        << (pData[3 * triangleIdx + 2] + 1) << " "
+                        << (pData[3 * triangleIdx + 0] + 1) << " "
                         << (pData[3 * triangleIdx + 1] + 1) << " "
-                        << (pData[3 * triangleIdx + 0] + 1) << std::endl;
+                        << (pData[3 * triangleIdx + 2] + 1) << std::endl;
                 }
 
                 pIB->unmap();

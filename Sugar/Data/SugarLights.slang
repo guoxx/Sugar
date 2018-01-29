@@ -172,6 +172,14 @@ inline void _fn prepareLightAttribs(LightData Light, ShadingAttribs ShAttr, floa
         }
     }
 #endif
+
+    if (Light.type == LightPolygonal)
+    {
+        for (int index = 0; index < 4; index++)
+        {
+            LightAttr.points[index] = Light.vertices[index].xyz;
+        }
+    }
 }
 
 /**

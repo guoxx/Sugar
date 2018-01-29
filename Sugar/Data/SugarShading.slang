@@ -95,6 +95,7 @@ struct ShadingOutput
 __import Cameras;
 __import SugarLights;
 __import SugarBSDFs;
+__import LTC;
 
 /*******************************************************************
 Material shading building blocks
@@ -253,6 +254,22 @@ float4 _fn evalDiffuseLayer(MaterialLayerDesc desc, MaterialLayerValues data, Sh
         float4 albedo = data.albedo;
         result.roughness = 1;
 #ifndef _MS_DISABLE_DIFFUSE
+        weight = albedo.w;
+        result.diffuseAlbedo += albedo.rgb * data.pmf;
+        result.diffuseIllumination += value;
+#else
+        value = 0;
+#endif
+        return float4(value, weight);
+    }
+    else if (lAttr.type == LightPolygonal)
+    {
+        float3 value = lAttr.lightIntensity;
+        float weight = 0;
+        float4 albedo = data.albedo;
+        result.roughness = 1;
+#ifndef _MS_DISABLE_DIFFUSE
+        //value *= ltcEvalLambert(shAttr.N, shAttr.V, shAttr.P, lAttr.points);
         weight = albedo.w;
         result.diffuseAlbedo += albedo.rgb * data.pmf;
         result.diffuseIllumination += value;

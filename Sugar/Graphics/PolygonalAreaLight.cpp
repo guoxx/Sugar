@@ -74,7 +74,8 @@ namespace Falcor
         mpVertices.push_back(PolarCoordinate{r, glm::degrees(M_PI_4 + M_PI_2)});
         mpVertices.push_back(PolarCoordinate{r, glm::degrees(M_PI_4)});
         mpVertices.push_back(PolarCoordinate{r, glm::degrees(M_PI_4 + M_PI_2 * 2)});
-        mpVertices.push_back(PolarCoordinate{r, glm::degrees(M_PI_4 + M_PI_2 * 3)});
+
+        mRotationAngles = glm::degrees(glm::vec3(0, 0, M_PI_2));
 
         createGeometry();
         updateSurfaceArea();
@@ -281,6 +282,7 @@ namespace Falcor
         ((Mesh::SharedPtr&)pModel->getMesh(0))->setMaterial(mpEmissiveMat);
 
         mpModelInstance = Scene::ModelInstance::create(pModel, glm::vec3(), glm::vec3(), glm::vec3(1), getEmissiveModelName(mName));
+        mpModelInstance->setRotation(radians(mRotationAngles));
 
 		Scene::SharedPtr pScene = mpScene.lock();
         if (pScene)

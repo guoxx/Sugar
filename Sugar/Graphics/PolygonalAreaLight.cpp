@@ -74,6 +74,7 @@ namespace Falcor
         mpVertices.push_back(PolarCoordinate{r, glm::degrees(M_PI_4 + M_PI_2)});
         mpVertices.push_back(PolarCoordinate{r, glm::degrees(M_PI_4)});
         mpVertices.push_back(PolarCoordinate{r, glm::degrees(M_PI_4 + M_PI_2 * 2)});
+        mpVertices.push_back(PolarCoordinate{r, glm::degrees(M_PI_4 + M_PI_2 * 3)});
 
         mRotationAngles = glm::degrees(glm::vec3(0, 0, M_PI_2));
 
@@ -203,6 +204,11 @@ namespace Falcor
 
         // Fetch the mesh instance transformation
         mData.transMat = mpModelInstance->getTransformMatrix();
+
+        for (int i = 0; i < 4; ++i)
+        {
+            mData.vertices[i] = mData.transMat * glm::vec4(polarCoordToCartesian(mpVertices[i]), 1.0f);
+        }
     }
 
     void PolygonalAreaLight::unloadGPUData()
@@ -214,20 +220,6 @@ namespace Falcor
     {
         mpModelInstance->move(position, target, up);
     }
-
-    //void PolygonalAreaLight::setRadius(float r)
-    //{
-    //    if (glm::epsilonEqual(r, mRadius, glm::epsilon<float>()))
-    //    {
-    //        return;
-    //    }
-
-    //    mRadius = r;
-
-    //    resetGeometry();
-    //    createGeometry();
-    //    updateSurfaceArea();
-    //}
 
     void PolygonalAreaLight::setIntensity(const glm::vec3& intensity)
     {
@@ -295,6 +287,13 @@ namespace Falcor
     {
         // TODO
         mSurfaceArea = 0;
+    }
+
+    glm::vec3 PolygonalAreaLight::polarCoordToCartesian(PolarCoordinate coord)
+    {
+        const float r = coord.x;
+        const float theta = glm::radians(coord.y);
+        return glm::vec3{r * std::cos(theta), 0, r * std::sin(theta)};
     }
 
     const void PolygonalAreaLight::setName(const std::string& name)

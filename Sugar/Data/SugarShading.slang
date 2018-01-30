@@ -269,7 +269,7 @@ float4 _fn evalDiffuseLayer(MaterialLayerDesc desc, MaterialLayerValues data, Sh
         float4 albedo = data.albedo;
         result.roughness = 1;
 #ifndef _MS_DISABLE_DIFFUSE
-        //value *= ltcEvalLambert(shAttr.N, shAttr.V, shAttr.P, lAttr.points);
+        value *= ltcEvalLambert(shAttr, lAttr);
         weight = albedo.w;
         result.diffuseAlbedo += albedo.rgb * data.pmf;
         result.diffuseIllumination += value;

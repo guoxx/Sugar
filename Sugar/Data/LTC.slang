@@ -33,6 +33,9 @@
 // TODO: just eliminate these since we know this is pure Slang.
 #include "HostDeviceData.h"
 
+__import SugarLights;
+__import Helpers;
+
 const float LUT_SIZE  = 64.0;
 const float LUT_SCALE = (LUT_SIZE - 1.0)/LUT_SIZE;
 const float LUT_BIAS  = 0.5/LUT_SIZE;
@@ -44,8 +47,32 @@ struct LtcLut
     SamplerState ltcSamp;
 };
 
+struct Point5
+{
+    float3 points[5];
+};
 
-int clipQuadToHorizon(inout float3 L[5]) {
+struct Point4
+{
+    float3 points[4];
+};
+
+#define ARRAY_TO_POINTS(N, array, pt)       \
+for (int i = 0; i < N; ++i)                 \
+{                                           \
+    pt.points[i] = array[i];                \
+}
+
+#define POINTS_TO_ARRAY(N, pt, array)       \
+for (int i = 0; i < N; ++i)                 \
+{                                           \
+    array[i] = pt.points[i];                \
+}
+
+int clipQuadToHorizon(_ref(Point5) pt5) {
+    float3 L[5];
+    POINTS_TO_ARRAY(5, pt5, L);
+
     /* Detect clipping config */
     int config = 0;
     if(L[0].z > 0.0) config += 1;
@@ -122,20 +149,21 @@ int clipQuadToHorizon(inout float3 L[5]) {
     if(n == 4)
         L[4] = L[0];
 
+    ARRAY_TO_POINTS(5, L, pt5);
     return n;
 }
 
 float2 ltcCoords(float roughness, float3 N, float3 V)
 {
     float theta = acos(dot(N, V));
-    vec2 uv = vec2(roughness, theta / (0.5 * M_PIf));
+    float2 uv = float2(roughness, theta / (0.5 * M_PIf));
     uv = uv * LUT_SCALE + LUT_BIAS;
     return uv;
 }
 
 float3x3 ltcMatrix(LtcLut lut, float2 coord)
 {
-    const vec4 t = lut.ltcMat.Sample(lut.ltcSamp, coord);
+    const float4 t = lut.ltcMat.Sample(lut.ltcSamp, coord);
     float3x3 invM = float3x3(
         float3(  1,   0, t.w),
         float3(  0, t.z,   0),
@@ -157,8 +185,11 @@ float integrateEdge(float3 v1, float3 v2)
     return res;
 }
 
-float ltcEvaluate(float3 N, float3 V, float3 P, float3x3 invM, float3 points[4], bool twoSided)
+float ltcEvaluate(float3 N, float3 V, float3 P, float3x3 invM, Point4 pt4, bool twoSided)
 {
+    float3 points[4];
+    POINTS_TO_ARRAY(4, pt4, points);
+
     /* Construct orthonormal basis around N */
     float3x3 basis;
     basis[0] = normalize(V - N * dot(N, V));
@@ -178,7 +209,13 @@ float ltcEvaluate(float3 N, float3 V, float3 P, float3x3 invM, float3 points[4],
 
     /* Clip light quad so that the part behind the surface does not affect the
      * lighting of the point */
-    int n = clipQuadToHorizon(L);
+
+    Point5 pt5;
+    L[4] = 0.0;
+    ARRAY_TO_POINTS(5, L, pt5);
+    int n = clipQuadToHorizon(pt5);
+    POINTS_TO_ARRAY(5, pt5, L);
+
     if(n == 0)
         return 0.0;
 
@@ -211,14 +248,17 @@ float ltcEvalSpecularGGX(LtcLut lut, float3 N, float3 V, float roughness)
     return 0.0f;
 }
 
-float ltcEvalLambert(float3 N, float3 V, float3 P, float3 points[4])
+float ltcEvalLambert(ShadingAttribs shAttr, LightAttribs lAttr)
 {
-    float3x3 identity = {
+    float3x3 identity = float3x3(
         1.0, 0.0, 0.0,
         0.0, 1.0, 0.0,
         0.0, 0.0, 1.0,
-    };
-    return ltcEvaluate(N, V, P, identity, points[4], false) / M_PIf;
+    );
+
+    Point4 pt4;
+    ARRAY_TO_POINTS(4, lAttr.points, pt4);
+    return ltcEvaluate(shAttr.N, shAttr.E, shAttr.P, identity, pt4, false) / M_PIf;
 }
 
 #endif	// _FALCOR_LTC_H_

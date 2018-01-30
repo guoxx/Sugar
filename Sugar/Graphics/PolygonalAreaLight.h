@@ -112,6 +112,8 @@ namespace Falcor
         void createGeometry();
         void updateSurfaceArea();
 
+        static glm::vec3 polarCoordToCartesian(PolarCoordinate coord);
+
         std::weak_ptr<Scene> mpScene;
         Material::SharedPtr mpEmissiveMat;
         Scene::ModelInstance::SharedPtr mpModelInstance;
@@ -119,9 +121,5 @@ namespace Falcor
         glm::vec3 mRotationAngles = glm::vec3(0.0f);
 
         float mSurfaceArea = 0.0f;
-
-        constexpr static float mRadiusMin = 0.01f;
-        constexpr static float mRadiusMax = 1000.01f;
-        constexpr static float mRadiusStep = 0.01f;
     };
 }

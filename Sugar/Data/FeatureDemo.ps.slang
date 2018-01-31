@@ -27,12 +27,17 @@
 ***************************************************************************/
 #include "FeatureDemoCommon.hlsli"
 
+__import LTC;
 __import SugarBSDFs;
 __import SugarShading;
 __import Helpers;
 
 layout(set = 1, binding = 0) Texture2D gEnvMap;
 layout(set = 1, binding = 1) SamplerState gSampler;
+
+Texture2D gLtcMat;
+Texture2D gLtcAmp;
+SamplerState gLtcSampler;
 
 struct PsOut
 {
@@ -70,7 +75,12 @@ PsOut main(MainVsOut vOut, float4 pixelCrd : SV_POSITION)
             envMapFactor -= 1 - shadowFactor;
         }
 #endif
-        evalMaterial(shAttr, gLights[l], shadowFactor, result, l == 0);
+
+        LtcAttribs gLtcAttr;
+        gLtcAttr.ltcMat = gLtcMat;
+        gLtcAttr.ltcAmp = gLtcAmp;
+        gLtcAttr.ltcSamp = gLtcSampler;
+        evalMaterial(shAttr, gLights[l], gLtcAttr, shadowFactor, result, l == 0);
     }
 
     finalColor = float4(result.finalValue, 1.f);

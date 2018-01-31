@@ -36,11 +36,11 @@
 __import SugarLights;
 __import Helpers;
 
-const float LUT_SIZE  = 64.0;
-const float LUT_SCALE = (LUT_SIZE - 1.0)/LUT_SIZE;
-const float LUT_BIAS  = 0.5/LUT_SIZE;
+#define LUT_SIZE  32.0
+#define LUT_SCALE ((LUT_SIZE - 1.0)/LUT_SIZE)
+#define LUT_BIAS  (0.5/LUT_SIZE)
 
-struct LtcLut
+struct LtcAttribs
 {
     Texture2D ltcMat;
     Texture2D ltcAmp;
@@ -161,13 +161,13 @@ float2 ltcCoords(float roughness, float3 N, float3 V)
     return uv;
 }
 
-float3x3 ltcMatrix(LtcLut lut, float2 coord)
+float3x3 ltcMatrix(Texture2D ltcMat, SamplerState ltcSamp, float2 coord)
 {
-    const float4 t = lut.ltcMat.Sample(lut.ltcSamp, coord);
+    const float4 t = ltcMat.Sample(ltcSamp, coord);
     float3x3 invM = float3x3(
-        float3(  1,   0, t.w),
+        float3(  1,   0, t.y),
         float3(  0, t.z,   0),
-        float3(t.y,   0, t.x)
+        float3(t.w,   0, t.x)
     );
 
     return invM;
@@ -244,10 +244,33 @@ float ltcEvaluate(float3 N, float3 V, float3 P, float3x3 invM, Point4 pt4, bool 
     return sum;
 }
 
-float ltcEvalSpecularGGX(LtcLut lut, float3 N, float3 V, float roughness)
+// ior is a value between 1.0 and 2.5
+// Assume air interface for top
+float IorToF0_Dielectric(float ior)
 {
-    //float2 uv = ltcCoords();
-    return 0.0f;
+	return pow(ior - 1, 2) / pow(ior + 1, 2);
+}
+
+float ltcEvalSpecularGGX(ShadingAttribs shAttr, LightAttribs lAttr, LtcAttribs ltcAttr, float2 rgns, float ior)
+{
+    float anisoU = rgns.y < rgns.x ? rgns.y / rgns.x : 1.f;
+    float anisoV = rgns.x < rgns.y ? rgns.x / rgns.y : 1.f;
+    float r = min(rgns.x, rgns.y);
+    r = sqrt(r);
+
+    float2 uv = ltcCoords(r, shAttr.N, shAttr.E);
+    float3x3 invM = ltcMatrix(ltcAttr.ltcMat, ltcAttr.ltcSamp, uv);
+
+    Point4 pt4;
+    ARRAY_TO_POINTS(4, lAttr.points, pt4);
+    float res = ltcEvaluate(shAttr.N, shAttr.E, shAttr.P, invM, pt4, false);
+
+    /* Apply BRDF scale terms (BRDF magnitude and Schlick Fresnel) */
+    const float2 schlick = ltcAttr.ltcAmp.Sample(ltcAttr.ltcSamp, uv).xy;
+    float F0 = IorToF0_Dielectric(ior);
+    // add fresnel approximation into account
+    res *= (F0 * schlick.x + (1.0 - F0) * schlick.y);
+    return res;
 }
 
 float ltcEvalLambert(ShadingAttribs shAttr, LightAttribs lAttr)

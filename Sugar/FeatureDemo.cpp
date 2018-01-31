@@ -251,6 +251,17 @@ void FeatureDemo::initTAA()
     applyAaMode();
 }
 
+void FeatureDemo::initLTC()
+{
+    mpLtcMat = createTextureFromFile("Textures/LTC/ltc_mat.dds", false, false);
+    mpLtcAmp = createTextureFromFile("Textures/LTC/ltc_amp.dds", false, false);
+
+    Sampler::Desc samplerDesc;
+    samplerDesc.setAddressingMode(Sampler::AddressMode::Wrap, Sampler::AddressMode::Wrap, Sampler::AddressMode::Wrap);
+    samplerDesc.setFilterMode(Sampler::Filter::Linear, Sampler::Filter::Linear, Sampler::Filter::Linear);
+    mpLtcSamp = Sampler::create(samplerDesc);
+}
+
 void FeatureDemo::initPostProcess()
 {
     mpToneMapper = ToneMapping::create(ToneMapping::Operator::HableUc2);
@@ -261,6 +272,7 @@ void FeatureDemo::onLoad()
     mpState = GraphicsState::create();
 
     initPostProcess();
+    initLTC();
     initializeTesting();
 }
 
@@ -350,6 +362,10 @@ void FeatureDemo::lightingPass()
         mpRenderContext->clearFbo(mTAA.getActiveFbo().get(), vec4(0.0, 0.0, 0.0, 0.0), 1, 0, FboAttachmentType::Color);
         pCB["gRenderTargetDim"] = glm::vec2(mpDefaultFBO->getWidth(), mpDefaultFBO->getHeight());
     }
+
+    mLightingPass.pVars->setTexture("gLtcMat", mpLtcMat);
+    mLightingPass.pVars->setTexture("gLtcAmp", mpLtcAmp);
+    mLightingPass.pVars->setSampler("gLtcSampler", mpLtcSamp);
 
     if(mControls[EnableTransparency].enabled)
     {

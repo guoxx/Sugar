@@ -325,20 +325,13 @@ float2 _fn filterRoughness(ShadingAttribs shAttr, LightAttribs lAttr, in float2 
     return roughness;
 }
 
-float4 _fn evalSpecularLayer(MaterialLayerDesc desc, MaterialLayerValues data, ShadingAttribs shAttr, LightAttribs lAttr, _ref(PassOutput) result)
+float4 _fn evalSpecularLayer(MaterialLayerDesc desc, MaterialLayerValues data, ShadingAttribs shAttr, LightAttribs lAttr, LtcAttribs ltcAttr, _ref(PassOutput) result)
 {
 #ifndef _MS_DISABLE_SPECULAR
     /* Add albedo regardless of facing */
     result.specularAlbedo += data.albedo.rgb * data.pmf;
 
-    /* Ignore the layer if it's a transmission or backfacing */
-    if (dot(lAttr.L, shAttr.N) * dot(shAttr.E, shAttr.N) <= 0.f)
-    {
-        return 0;
-    }
-
-    float3 value = lAttr.lightIntensity;
-
+    // Evaluate roughness
     float2 roughness;
     if(desc.hasTexture & ROUGHNESS_CHANNEL_BIT)
     {
@@ -358,44 +351,67 @@ float4 _fn evalSpecularLayer(MaterialLayerDesc desc, MaterialLayerValues data, S
     {
         return 0;
     }
-    
-    // compute halfway vector
-    float3 hW = normalize(shAttr.E + lAttr.L);
-    float3 h = normalize(float3(dot(hW, shAttr.T), dot(hW, shAttr.B), dot(hW, shAttr.N)));
 
-    result.roughness = roughness;
-
-    switch (desc.ndf)
+    if (lAttr.type == LightPolygonal)
     {
-    case NDFBeckmann: /* Beckmann microfacet distribution */
+        float IoR = data.extraParam.x;
+        float3 value = lAttr.lightIntensity * ltcEvalSpecularGGX(shAttr, lAttr, ltcAttr, roughness, IoR);
+
+        // update result
+        result.roughness = roughness;
+        result.specularIllumination += value;
+
+        // TODO - only additive blend mode supported
+        return float4(value, 1.0);
+    }
+    else
     {
-        value *= evalBeckmannDistribution(h, roughness);
+        /* Ignore the layer if it's a transmission or backfacing */
+        if (dot(lAttr.L, shAttr.N) * dot(shAttr.E, shAttr.N) <= 0.f)
+        {
+            return 0;
+        }
+
+        float3 value = lAttr.lightIntensity;
+
+        // compute halfway vector
+        float3 hW = normalize(shAttr.E + lAttr.L);
+        float3 h = normalize(float3(dot(hW, shAttr.T), dot(hW, shAttr.B), dot(hW, shAttr.N)));
+
+        result.roughness = roughness;
+
+        switch (desc.ndf)
+        {
+        case NDFBeckmann: /* Beckmann microfacet distribution */
+        {
+            value *= evalBeckmannDistribution(h, roughness);
+        }
+        break;
+        case NDFGGX: /* GGX */
+        {
+            value *= evalGGXDistribution(h, roughness);
+        }
+        break;
+        }
+
+        /* Evaluate standard microfacet model terms */
+        value *= evalMicrofacetTerms(shAttr.T, shAttr.B, shAttr.N, h, shAttr.E, lAttr.L, roughness, desc.ndf, (desc.type) == MatDielectric);
+
+        /* Cook-Torrance Jacobian */
+        value /= 4.f * dot(shAttr.E, shAttr.N);
+
+        /* Fresnel conductor/dielectric term */
+        float HoE = dot(hW, shAttr.E);
+        float IoR = data.extraParam.x;
+        float kappa = data.extraParam.y;
+        float F_term = (desc.type == MatConductor) ? conductorFresnel(HoE, IoR, kappa) : dielectricFresnel(HoE, IoR);
+        value *= F_term;
+        float weight = (1.0f - F_term) / (IoR * IoR);
+
+        result.specularIllumination += value;
+
+        return float4(value, weight);
     }
-    break;
-    case NDFGGX: /* GGX */
-    {
-        value *= evalGGXDistribution(h, roughness);
-    }
-    break;
-    }
-
-    /* Evaluate standard microfacet model terms */
-    value *= evalMicrofacetTerms(shAttr.T, shAttr.B, shAttr.N, h, shAttr.E, lAttr.L, roughness, desc.ndf, (desc.type) == MatDielectric);
-
-    /* Cook-Torrance Jacobian */
-    value /= 4.f * dot(shAttr.E, shAttr.N);
-
-    /* Fresnel conductor/dielectric term */
-    float HoE = dot(hW, shAttr.E);
-    float IoR = data.extraParam.x;
-    float kappa = data.extraParam.y;
-    float F_term = (desc.type == MatConductor) ? conductorFresnel(HoE, IoR, kappa) : dielectricFresnel(HoE, IoR);
-    value *= F_term;
-    float weight = (1.0f - F_term) / (IoR * IoR);
-
-    result.specularIllumination += value;
-
-    return float4(value, weight);
 #else
     return 0;
 #endif
@@ -431,7 +447,7 @@ The routine takes a layer index, as well as shading attributes, including prepar
 it also takes prepared attributes of a light source, such as incident radiance and a world-space direction to the light.
 The output is the illumination of the current layer, blended into the results of the previous layers with a specified blending mode.
 */
-void _fn evalMaterialLayer(int iLayer, ShadingAttribs attr, LightAttribs lAttr,
+void _fn evalMaterialLayer(int iLayer, ShadingAttribs attr, LightAttribs lAttr, LtcAttribs ltcAttr,
     _ref(PassOutput) result)
 {
     float4 value = 0;
@@ -448,7 +464,7 @@ void _fn evalMaterialLayer(int iLayer, ShadingAttribs attr, LightAttribs lAttr,
         break;
     case MatConductor:
     case MatDielectric:
-        value = evalSpecularLayer(desc, values, attr, lAttr, result) * lAttr.shadowFactor;
+        value = evalSpecularLayer(desc, values, attr, lAttr, ltcAttr, result) * lAttr.shadowFactor;
         break;
     };
 
@@ -467,6 +483,7 @@ Should be called once per light.
 void _fn evalMaterial(
     ShadingAttribs shAttr,
     LightAttribs lAttr,
+    LtcAttribs ltcAttr,
     _ref(ShadingOutput) result,
     bool initializeShadingOut DEFAULTS(false))
 {
@@ -497,7 +514,7 @@ void _fn evalMaterial(
     for(uint iLayer = 0 ; iLayer < MatMaxLayers ; iLayer++)
     {
         if(shAttr.preparedMat.desc.layers[iLayer].type == MatNone) break;
-        evalMaterialLayer(iLayer, shAttr, lAttr, passResult);
+        evalMaterialLayer(iLayer, shAttr, lAttr, ltcAttr, passResult);
     }
 
     /* Accumulate the results of the pass */
@@ -512,6 +529,7 @@ void _fn evalMaterial(
 void _fn evalMaterial(
     ShadingAttribs shAttr,
     LightData light,
+    LtcAttribs ltcAttr,
     float shadowFactor,
     _ref(ShadingOutput) result,
     bool initializeShadingOut DEFAULTS(false))
@@ -521,7 +539,7 @@ void _fn evalMaterial(
     prepareLightAttribs(light, shAttr, shadowFactor, LAttr);
 
     /* Evaluate material with lighting attributes */
-    evalMaterial(shAttr, LAttr, result, initializeShadingOut);
+    evalMaterial(shAttr, LAttr, ltcAttr, result, initializeShadingOut);
 }
 
 /**
@@ -530,10 +548,11 @@ Another overload of material evaluation function, which prepares light attribute
 void _fn evalMaterial(
     ShadingAttribs shAttr,
     LightData light,
+    LtcAttribs ltcAttr,
     _ref(ShadingOutput) result,
     bool initializeShadingOut DEFAULTS(false))
 {
-    evalMaterial(shAttr, light, 1, result, initializeShadingOut);
+    evalMaterial(shAttr, light, ltcAttr, 1, result, initializeShadingOut);
 }
 
 /*******************************************************************

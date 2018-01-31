@@ -147,6 +147,7 @@ private:
     void initSSAO();
     void initEnvMap(const std::string& name);
     void initTAA();
+    void initLTC();
 
     void initControls();
 
@@ -162,6 +163,10 @@ private:
     void setSceneSampler(uint32_t maxAniso);
 
     Camera* getActiveCamera() const;
+
+    Texture::SharedPtr mpLtcMat;
+    Texture::SharedPtr mpLtcAmp;
+    Sampler::SharedPtr mpLtcSamp;
 
     Texture::SharedPtr mpEnvMap;
     Sampler::SharedPtr mpSceneSampler;

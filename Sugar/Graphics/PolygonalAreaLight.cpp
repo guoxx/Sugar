@@ -205,10 +205,10 @@ namespace Falcor
         // Fetch the mesh instance transformation
         mData.transMat = mpModelInstance->getTransformMatrix();
 
-        for (int i = 0; i < 4; ++i)
-        {
-            mData.vertices[i] = mData.transMat * glm::vec4(polarCoordToCartesian(mpVertices[i]), 1.0f);
-        }
+        mData.vertices[0] = mData.transMat * glm::vec4(polarCoordToCartesian(mpVertices[0]), 1.0f);
+        mData.vertices[1] = mData.transMat * glm::vec4(polarCoordToCartesian(mpVertices[1]), 1.0f);
+        mData.vertices[2] = mData.transMat * glm::vec4(polarCoordToCartesian(mpVertices[3]), 1.0f);
+        mData.vertices[3] = mData.transMat * glm::vec4(polarCoordToCartesian(mpVertices[2]), 1.0f);
     }
 
     void PolygonalAreaLight::unloadGPUData()

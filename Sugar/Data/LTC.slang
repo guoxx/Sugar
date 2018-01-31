@@ -239,6 +239,8 @@ float ltcEvaluate(float3 N, float3 V, float3 P, float3x3 invM, Point4 pt4, bool 
     /* Negated due to winding order */
     sum = twoSided ? abs(sum) : max(0.0, -sum);
 
+    sum /= 2*M_PIf;
+
     return sum;
 }
 
@@ -258,7 +260,7 @@ float ltcEvalLambert(ShadingAttribs shAttr, LightAttribs lAttr)
 
     Point4 pt4;
     ARRAY_TO_POINTS(4, lAttr.points, pt4);
-    return ltcEvaluate(shAttr.N, shAttr.E, shAttr.P, identity, pt4, false) / M_PIf;
+    return ltcEvaluate(shAttr.N, shAttr.E, shAttr.P, identity, pt4, false);
 }
 
 #endif	// _FALCOR_LTC_H_
